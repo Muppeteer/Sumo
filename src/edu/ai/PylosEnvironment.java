@@ -5,6 +5,7 @@ import java.util.List;
 
 public class PylosEnvironment {
 
+	// Suggest: change boardRep to board
 	private int[][][] boardRep;
 	private int currentPlayer;
 	
