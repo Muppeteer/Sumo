@@ -1,5 +1,6 @@
 package edu.ai;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -106,7 +107,21 @@ public class PylosEnvironment {
 				continue;
 			}
 		}
-		return notLocked;
+		return !notLocked;
+	}
+	
+	private List<PylosPosition> getUnlockedPositions() {
+		List<PylosPosition> l = new ArrayList<PylosPosition>();
+		for(int i = 0; i < 4; i++) { //depth
+			for(int j = 0; j < 4-i; j++) { //row
+				for(int k = 0; k < 4-i; k++) { //column
+					if(!isLocked(j, k, i) && !isEmpty(j,k,i)) { //nonempty and not locked
+						l.add(new PylosPosition(j, k, i, currentPlayer));
+					}
+				}
+			}
+		}
+		return l;
 	}
 	
 	private boolean isPlayable(int x, int y, int z) {
@@ -114,10 +129,12 @@ public class PylosEnvironment {
 		if(!isValidPosition(x, y, z)) return false; //invalid position is not playable
 		//ie. I need to know if there are squares underneath me, and none on top such that
 		//I can place something here
-		if( !isEmpty(x,y,z) || isLocked(x,y,z)) {
+		if(!isEmpty(x,y,z) || isLocked(x,y,z)) {
 			return false; //if I am locked, there are pieces on top of me
 			//if I am not locked, however, I may still be nonempty and so nonplayable
 		}
+		//on the bottom row, am empty and not locked, why bother checking?
+		if(z == 0) return true;
 		else {
 			int[] changeX = {0,0,1,1};
 			int[] changeY = {0,1,1,0};
@@ -147,6 +164,20 @@ public class PylosEnvironment {
 			}
 			return canPlay;
 		}
+	}
+	
+	private List<PylosMove> getPlayableMoves() {
+		List<PylosMove> l = new ArrayList<PylosMove>();
+		for(int i = 0; i < 4; i++) { //depth
+			for(int j = 0; j < 4-i; j++) { //row
+				for(int k = 0; k < 4-i; k++) { //column
+					if(isPlayable(j, k, i)) { //position can be played at
+						l.add(new PylosMove(new PylosPosition(j, k, i, currentPlayer)));
+					}
+				}
+			}
+		}
+		return l;
 	}
 	
 	//assumes x, y, z are valid
@@ -265,6 +296,27 @@ public class PylosEnvironment {
 	}
 	
 	public List<PylosMove> getMoves() {
+		List<PylosMove> allMoves = new ArrayList<PylosMove>();
+		List<PylosMove> playableMoves = getPlayableMoves();
+		List<PylosPosition> unlockedPositions = getUnlockedPositions();
+		for(PylosMove m : playableMoves) {
+			if(moveMakesPattern(m.move.x,m.move.y,m.move.z)) {
+				int sz = unlockedPositions.size();
+				for(int i = 0; i < sz; i++) {
+					allMoves.add(new PylosReturnMove(
+							m.move, unlockedPositions.get(i)));
+					for(int j = i+1; j < sz; j++) {
+						allMoves.add(new PylosReturnMove(
+								m.move,
+								unlockedPositions.get(i),
+								unlockedPositions.get(j)));
+					}
+				}
+			}
+			else {
+				allMoves.add(m);
+			}
+		}
 		//TODO: return all moves here
 		return null;
 	}
