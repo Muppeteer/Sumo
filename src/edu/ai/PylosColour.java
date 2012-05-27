@@ -4,7 +4,7 @@ package edu.ai;
 //	BLACK, WHITE, EMPTY
 //}
 
-public class SphereColour {
+public class PylosColour {
 	static final int ILLEGAL = -2;
 	static final int UNSUPPORTED = -1;
 	static final int EMPTY = 0;

@@ -11,7 +11,7 @@ public class PylosEnvironment {
 	
 	public PylosEnvironment() {
 		//WHITE is first to play
-		currentPlayer = SphereColour.WHITE;
+		currentPlayer = PylosColour.WHITE;
 		board = new int[4][][];
 		board[0] = new int[4][4];
 		board[1] = new int[3][3];
@@ -20,7 +20,7 @@ public class PylosEnvironment {
 		//ensure that BoardPositions begin as Empty
 		for(int[][] a : board) {
 			for(int[] b : a) {
-				Arrays.fill(b, SphereColour.EMPTY);
+				Arrays.fill(b, PylosColour.EMPTY);
 			}
 		}
 	}
@@ -75,7 +75,7 @@ public class PylosEnvironment {
 		//an invalid position should not be placable
 		//TODO: make exception here
 		if(!isValidPosition(x, y, z)) return false;
-		return board[z][x][y] == SphereColour.EMPTY;
+		return board[z][x][y] == PylosColour.EMPTY;
 	}
 	
 	private boolean isLocked(int x, int y, int z) {
@@ -201,11 +201,11 @@ public class PylosEnvironment {
 				}
 			}
 			if(nSame == 4) {
-				board[z][y][x] = SphereColour.EMPTY;
+				board[z][y][x] = PylosColour.EMPTY;
 				return true;
 			}
 		}
-		board[z][y][x] = SphereColour.EMPTY;
+		board[z][y][x] = PylosColour.EMPTY;
 		return false;
 	}
 	
@@ -230,11 +230,11 @@ public class PylosEnvironment {
 			}
 			if(nSame == depth) {
 				//undo the move
-				board[z][y][x] = SphereColour.EMPTY;
+				board[z][y][x] = PylosColour.EMPTY;
 				return true;
 			}
 		}
-		board[z][y][x] = SphereColour.EMPTY;
+		board[z][y][x] = PylosColour.EMPTY;
 		return false;
 	}
 	
@@ -280,10 +280,10 @@ public class PylosEnvironment {
 	}
 	
 	public void update(PylosMove m) throws Exception {
-		if(currentPlayer == SphereColour.WHITE) {
-			currentPlayer = SphereColour.BLACK;
+		if(currentPlayer == PylosColour.WHITE) {
+			currentPlayer = PylosColour.BLACK;
 		}
-		else currentPlayer = SphereColour.WHITE;
+		else currentPlayer = PylosColour.WHITE;
 		if(m instanceof PylosRaiseMove) {
 			//TODO: make change (raise)
 		}
