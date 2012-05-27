@@ -60,21 +60,26 @@ public class PylosEnvironment {
 		return notLocked;
 	}
 	
-	private boolean isPlayablePosition(int x, int y, int z) {
+	private boolean isPlayable(int x, int y, int z) {
 		//ie. I need to know if there are squares underneath me, and none on top such that
 		//I can place something here
-		if(isLocked(x,y,z) || !isEmpty(x,y,z)) {
-			return false;
+		if( !isEmpty(x,y,z) || isLocked(x,y,z)) {
+			return false; //if I am locked, there are pieces on top of me
+			//if I am not locked, however, I may still be nonempty and so nonplayable
 		}
 		else {
 			int[] changeX = {0,0,1,1};
 			int[] changeY = {0,1,1,0};
 			boolean canPlay = true;
+			//check each of the possible four positions that could be on top of me
+			//that will cause me to be locked!
 			for(int i = 0; i < 4; i++) {
 				int cr,cc,cl;
 				cr = x+changeX[i];
 				cc = y+changeY[i];
 				cl = z+1;
+				//in the case of corner or edge squares the supposed locking position is
+				//off the board, so check if I'm in a valid position before trying
 				if(!PylosPosition.isValidPosition(cr,cc,cl))
 					continue;
 				try {
@@ -88,6 +93,67 @@ public class PylosEnvironment {
 			}
 			return canPlay;
 		}
+	}
+	
+	private boolean moveMakesPattern(int x, int y, int z) {
+		//check in the up, down, left, right positions for lines
+		boardRep[z][y][x] = currentPlayer;
+		if(!PylosPosition.isValidPosition(x,y,z)) {
+			return false;
+		}
+		int[] lineX = {0,0,1,-1}; //up,down,right,left
+		int[] lineY = {-1,1,0,0};
+		switch(z) {
+			case(0): {
+				//check for fourline in all dirs
+				for(int i = 0; i < 4; i++) {
+					int nSame = 1;
+					for(int j = 1; j <= 3; j++) {
+						int cr,cc,cl; //change in row, column,layer
+						cr = x+j*lineX[i];
+						cc = y+j*lineY[i];
+						cl = z;
+						if(PylosPosition.isValidPosition(cr,cc,cl)) {
+							nSame += boardRep[cl][cr][cc] == currentPlayer ? 1 : 0;
+						}
+					}
+					if(nSame == 4) {
+						//undo the move
+						boardRep[z][y][x] = SphereColour.EMPTY;
+						return true;
+					}
+				}
+				//check for foursquare
+				break;
+			}
+			case(1): {
+				//check for threeline in all dirs
+				for(int i = 0; i < 4; i++) {
+					int nSame = 1;
+					for(int j = 1; j <= 2; j++) {
+						int cr,cc,cl; //change in row, column,layer
+						cr = x+j*lineX[i];
+						cc = y+j*lineY[i];
+						cl = z;
+						if(PylosPosition.isValidPosition(cr,cc,cl)) {
+							nSame += boardRep[cl][cr][cc] == currentPlayer ? 1 : 0;
+						}
+					}
+					if(nSame == 3) {
+						boardRep[z][y][x] = SphereColour.EMPTY;
+						return true;
+					}
+				}
+				//check for foursquare
+				break;
+			}
+			case(2): {
+				//check for foursquare
+				break;
+			}
+			default: break;
+		}
+		return false;
 	}
 	
 	public void update(PylosMove m) throws Exception {
