@@ -36,6 +36,13 @@ public class PylosEnvironment {
 		return nBlack == 15 || nWhite == 15;
 	}
 	
+	public PylosColour getWinner() {
+		if(nBlack == 15 && nWhite == 15) {
+			return board[3][0][0];
+		}
+		else return nBlack == 15 ? PylosColour.WHITE : PylosColour.BLACK;
+	}
+	
 	// Single call method to check all cases
 	public boolean isValidPosition(int x, int y, int z) {
 		if(x < 0 || y < 0) return false;
@@ -271,6 +278,13 @@ public class PylosEnvironment {
 		else return moveMakesSquare(x,y,z);
 	}
 	
+	public static PylosColour changeCurrent(PylosColour c) {
+		if(c == PylosColour.WHITE)
+			return PylosColour.BLACK;
+		else
+			return PylosColour.WHITE;
+	}
+	
 	private void update(PylosMove m, boolean changeColour) {
 		if(m instanceof PylosReturnMove) {
 			PylosReturnMove prm = (PylosReturnMove) m;
@@ -302,10 +316,7 @@ public class PylosEnvironment {
 			board[m.move.z][m.move.x][m.move.y] = m.move.colour;
 		}
 		if(changeColour) {
-			if(currentPlayer == PylosColour.WHITE)
-				currentPlayer = PylosColour.BLACK;
-			else
-				currentPlayer = PylosColour.WHITE;
+			currentPlayer = changeCurrent(currentPlayer);
 		}
 		//this will switch players due to their representations as ints
 		//currentPlayer = (currentPlayer*2) % 3;
@@ -317,10 +328,7 @@ public class PylosEnvironment {
 	
 	private void undoMove(PylosMove m, boolean changeColour) {
 		if(changeColour) {
-			if(currentPlayer == PylosColour.WHITE)
-				currentPlayer = PylosColour.BLACK;
-			else
-				currentPlayer = PylosColour.WHITE;
+			currentPlayer = changeCurrent(currentPlayer);
 		}
 		if(m instanceof PylosReturnMove) {
 			PylosReturnMove prm = (PylosReturnMove) m;
