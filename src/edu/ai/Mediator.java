@@ -1,5 +1,7 @@
 package edu.ai;
 
+//starts and mediates a game between two players who it has been informed will
+//play against each other
 public class Mediator {
 
 	//game board
