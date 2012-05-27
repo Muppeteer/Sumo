@@ -99,48 +99,4 @@ public final class PylosPosition {
 		}
 		this.z = z;
 	}
-	
-	public static boolean isValidPosition(int x, int y, int z) {
-		switch(z) {
-			case(0): {
-				if(x >= 3 || x < 0) {
-					return false;
-				}
-				if(y >= 3 || y < 0) {
-					return false;
-				}
-				break;
-			}
-			case(1): {
-				if(x >= 2 || x < 0) {
-					return false;
-				}
-				if(y >= 2 || y < 0) {
-					return false;
-				}
-				break;
-			}
-			case(2): {
-				if(x >= 1 || x < 0) {
-					return false;
-				}
-				if(y >= 1 || y < 0) {
-					return false;
-				}
-				break;
-			}
-			case(3): {
-				if(x != 0) {
-					return false;
-				}
-				if(y != 0) {
-					return false;
-				}
-				break;
-			}
-			default:
-				return false;
-		}
-		return true;
-	}
 }

@@ -24,13 +24,62 @@ public class PylosEnvironment {
 		}
 	}
 	
+	public static boolean isValidPosition(int x, int y, int z) {
+		switch(z) {
+			case(0): {
+				if(x >= 3 || x < 0) {
+					return false;
+				}
+				if(y >= 3 || y < 0) {
+					return false;
+				}
+				break;
+			}
+			case(1): {
+				if(x >= 2 || x < 0) {
+					return false;
+				}
+				if(y >= 2 || y < 0) {
+					return false;
+				}
+				break;
+			}
+			case(2): {
+				if(x >= 1 || x < 0) {
+					return false;
+				}
+				if(y >= 1 || y < 0) {
+					return false;
+				}
+				break;
+			}
+			case(3): {
+				if(x != 0) {
+					return false;
+				}
+				if(y != 0) {
+					return false;
+				}
+				break;
+			}
+			default:
+				return false;
+		}
+		return true;
+	}
+	
 	//note: following checker methods assume that they were checked beforehand,
 	//will die if not so
 	private boolean isEmpty(int x, int y, int z) {
+		//an invalid position should not be placable
+		//TODO: make exception here
+		if(!isValidPosition(x, y, z)) return false;
 		return boardRep[z][x][y] == SphereColour.EMPTY;
 	}
 	
 	private boolean isLocked(int x, int y, int z) {
+		//TODO: make exception here
+		if(!isValidPosition(x, y, z)) return true; //invalid position is locked
 		if(isEmpty(x,y,z)) {
 			return false; //position empty, of course not locked!
 		}
@@ -46,7 +95,7 @@ public class PylosEnvironment {
 			cl = z+1;
 			//in the case of corner or edge squares the supposed locking position is
 			//off the board, so check if I'm in a valid position before trying
-			if(!PylosPosition.isValidPosition(cr,cc,cl))
+			if(!isValidPosition(cr,cc,cl))
 				continue;
 			try {
 				boolean isAboveEmpty = isEmpty(cr,cc,cl);
@@ -61,6 +110,8 @@ public class PylosEnvironment {
 	}
 	
 	private boolean isPlayable(int x, int y, int z) {
+		//TODO: make exception here
+		if(!isValidPosition(x, y, z)) return false; //invalid position is not playable
 		//ie. I need to know if there are squares underneath me, and none on top such that
 		//I can place something here
 		if( !isEmpty(x,y,z) || isLocked(x,y,z)) {
@@ -80,13 +131,16 @@ public class PylosEnvironment {
 				cl = z+1;
 				//in the case of corner or edge squares the supposed locking position is
 				//off the board, so check if I'm in a valid position before trying
-				if(!PylosPosition.isValidPosition(cr,cc,cl))
+				if(!isValidPosition(cr,cc,cl)) {
+					System.err.println("Error: Went out of bounds trying to test below me");
 					continue;
+				}
 				try {
 					boolean isBelowFilled = !isEmpty(cr,cc,cl);
 					canPlay &= isBelowFilled;
 				}
 				catch(ArrayIndexOutOfBoundsException e) {
+					System.err.println("Error, when out of bounds when checking below");
 					//just in case the check was bad, catch the exception and go on
 					continue;
 				}
@@ -95,60 +149,98 @@ public class PylosEnvironment {
 		}
 	}
 	
-	private boolean moveMakesPattern(int x, int y, int z) {
-		//check in the up, down, left, right positions for lines
-		boardRep[z][y][x] = currentPlayer;
-		if(!PylosPosition.isValidPosition(x,y,z)) {
-			return false;
+	//assumes x, y, z are valid
+	//move is atomic, will change the colour and attempt to make pattern and
+	//then change it back after its done
+	private boolean checkSquare(int x, int y, int z) {
+		boardRep[z][x][y] = currentPlayer;
+		//clockwise square checking
+		//topleft,topright,bottomleft,bottomright
+		int[][] squareX = {{1,1,0},{0,-1,-1},{-1,-1,0},{0,1,1}};
+		int[][] squareY = {{0,-1,-1},{-1,-1,0},{0,1,1},{1,1,0}};
+		for(int i = 0; i < 4; i++) {
+			int nSame = 1;
+			for(int j = 1; j <= 3; j++) {
+				int cr,cc,cl; //change in row, column,layer
+				cr = x+squareX[i][j];
+				cc = y+squareY[i][j];
+				cl = z;
+				if(isValidPosition(cr,cc,cl)) {
+					nSame += boardRep[cl][cr][cc] == currentPlayer ? 1 : 0;
+				}
+			}
+			if(nSame == 4) {
+				boardRep[z][y][x] = SphereColour.EMPTY;
+				return true;
+			}
 		}
+		boardRep[z][y][x] = SphereColour.EMPTY;
+		return false;
+	}
+	
+	//assumes x, y, z are valid
+	//move is atomic, will change the colour and attempt to make pattern and
+	//then change it back after its done
+	private boolean moveMakesLine(int x, int y, int z, int depth) {
+		boardRep[z][x][y] = currentPlayer;
 		int[] lineX = {0,0,1,-1}; //up,down,right,left
 		int[] lineY = {-1,1,0,0};
+		for(int i = 0; i < 4; i++) {
+			int nSame = 1;
+			for(int j = 1; j <= depth-1; j++) {
+				int cr,cc,cl; //change in row, column,layer
+				cr = x+j*lineX[i];
+				cc = y+j*lineY[i];
+				cl = z;
+				if(isValidPosition(cr,cc,cl)) {
+					nSame += boardRep[cl][cr][cc] == currentPlayer ? 1 : 0;
+				}
+				else break;
+			}
+			if(nSame == depth) {
+				//undo the move
+				boardRep[z][y][x] = SphereColour.EMPTY;
+				return true;
+			}
+		}
+		boardRep[z][y][x] = SphereColour.EMPTY;
+		return false;
+	}
+	
+	private boolean moveMakesPattern(int x, int y, int z) {
+		//TODO: throw an exception here
+		if(!isValidPosition(x,y,z)) { //invalid positions do not make patterns
+			return false;
+		}
+		//check in the up, down, left, right positions for lines
 		switch(z) {
 			case(0): {
 				//check for fourline in all dirs
-				for(int i = 0; i < 4; i++) {
-					int nSame = 1;
-					for(int j = 1; j <= 3; j++) {
-						int cr,cc,cl; //change in row, column,layer
-						cr = x+j*lineX[i];
-						cc = y+j*lineY[i];
-						cl = z;
-						if(PylosPosition.isValidPosition(cr,cc,cl)) {
-							nSame += boardRep[cl][cr][cc] == currentPlayer ? 1 : 0;
-						}
-					}
-					if(nSame == 4) {
-						//undo the move
-						boardRep[z][y][x] = SphereColour.EMPTY;
-						return true;
-					}
+				if(moveMakesLine(x, y, z, 4)) {
+					return true;
 				}
 				//check for foursquare
+				if(checkSquare(x,y,z)) {
+					return true;
+				}
 				break;
 			}
 			case(1): {
 				//check for threeline in all dirs
-				for(int i = 0; i < 4; i++) {
-					int nSame = 1;
-					for(int j = 1; j <= 2; j++) {
-						int cr,cc,cl; //change in row, column,layer
-						cr = x+j*lineX[i];
-						cc = y+j*lineY[i];
-						cl = z;
-						if(PylosPosition.isValidPosition(cr,cc,cl)) {
-							nSame += boardRep[cl][cr][cc] == currentPlayer ? 1 : 0;
-						}
-					}
-					if(nSame == 3) {
-						boardRep[z][y][x] = SphereColour.EMPTY;
-						return true;
-					}
+				if(moveMakesLine(x, y, z, 3)) {
+					return true;
 				}
 				//check for foursquare
+				if(checkSquare(x,y,z)) {
+					return true;
+				}
 				break;
 			}
 			case(2): {
 				//check for foursquare
+				if(checkSquare(x,y,z)) {
+					return true;
+				}
 				break;
 			}
 			default: break;
