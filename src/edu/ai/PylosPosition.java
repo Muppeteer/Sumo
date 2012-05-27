@@ -99,4 +99,12 @@ public final class PylosPosition {
 		}
 		this.z = z;
 	}
+	
+	public boolean equals(Object o) {
+		if(o instanceof PylosPosition) {
+			PylosPosition p = (PylosPosition) o;
+			return p.x == x && p.y == y && p.z == z && p.colour == colour;
+		}
+		return false;
+	}
 }
