@@ -115,7 +115,8 @@ public class PylosEnvironment {
 		for(int i = 0; i < 4; i++) { //depth
 			for(int j = 0; j < 4-i; j++) { //row
 				for(int k = 0; k < 4-i; k++) { //column
-					if(!isLocked(j, k, i) && !isEmpty(j,k,i)) { //nonempty and not locked
+					if(!isLocked(j, k, i) && !isEmpty(j,k,i) && board[i][j][k] == currentPlayer) {
+						//nonempty and not locked AND MY COLOUR!
 						l.add(new PylosPosition(j, k, i, currentPlayer));
 					}
 				}
@@ -297,8 +298,8 @@ public class PylosEnvironment {
 	
 	public List<PylosMove> getMoves() {
 		List<PylosMove> allMoves = new ArrayList<PylosMove>();
-		List<PylosMove> playableMoves = getPlayableMoves();
-		List<PylosPosition> unlockedPositions = getUnlockedPositions();
+		List<PylosMove> playableMoves = getPlayableMoves(); //places with nothing that i can play at
+		List<PylosPosition> unlockedPositions = getUnlockedPositions(); //of my colour
 		for(PylosMove m : playableMoves) {
 			if(moveMakesPattern(m.move.x,m.move.y,m.move.z)) {
 				int sz = unlockedPositions.size();
@@ -317,7 +318,15 @@ public class PylosEnvironment {
 				allMoves.add(m);
 			}
 		}
+		for(PylosPosition p : unlockedPositions) {
+			for(PylosMove m : playableMoves) {
+				if(m.move.z > p.z)
+					//the move to position is higher than the raise from
+					//so raise is valid
+					allMoves.add(new PylosRaiseMove(m.move, p));
+			}
+		}
 		//TODO: return all moves here
-		return null;
+		return allMoves;
 	}
 }
