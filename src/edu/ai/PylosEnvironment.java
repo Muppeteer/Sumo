@@ -54,13 +54,15 @@ public class PylosEnvironment {
 	
 // REVIEW: rather than checking each position's four parents (including impossible ones!),
 // why not go top-down and just lock each occupied position's supporting positions? More efficient :)
+// CODER: This makes it harder later when you want to find out if a position is unlocked as a result
+// of you simulating a remove
 	private boolean isLocked(int x, int y, int z) {
-		//		//TODO: make exception here
-		//		//in representation of code, a locked piece is numerically represented by
-		//		//the integer representation of that colour multipled by 3
-		//		//so WHITE = 1, then WHITE_LOCKED = 3
-		//		//BLACK = 2, BLACK_LOCKED = 6
-		//		return board[z][x][y] % 3 == 0;
+//		//TODO: make exception here
+//		//in representation of code, a locked piece is numerically represented by
+//		//the integer representation of that colour multipled by 3
+//		//so WHITE = 1, then WHITE_LOCKED = 3
+//		//BLACK = 2, BLACK_LOCKED = 6
+//		return board[z][x][y] % 3 == 0;
 		if(!isValidPosition(x, y, z)) //return true; //invalid position is "locked"
 			throw new PylosGameStateException("isLocked",x,y,z);
 		if(isEmpty(x,y,z)) {
@@ -199,8 +201,7 @@ public class PylosEnvironment {
 	
 	//assumes x, y, z are valid and empty
 	//move is atomic, will change the colour and attempt to make pattern and
-	//then change it back after its done
-// REVIEW: You mean it assumes board[z][x][y] is EMPTY, right?	 
+	//then change it back after its done 
 	private boolean moveMakesSquare(int x, int y, int z) {
 		board[z][x][y] = currentPlayer;
 		//clockwise square checking
@@ -356,6 +357,9 @@ public class PylosEnvironment {
 		undoMove(m,true);
 	}
 	
+	//get all the moves that are available in a state
+	//gets all possible moves and simulates them
+	//if they form a pattern then it will add in all possible removals
 	public List<PylosMove> getMoves() {
 		//all possible moves will be in allmoves
 		List<PylosMove> allMoves = new ArrayList<PylosMove>();
@@ -372,7 +376,10 @@ public class PylosEnvironment {
 				update(tmp,false);
 				//all positions that are unlocked that have MY COLOUR in them
 				//these are all the positions that could be raised/removed from
-				List<PylosPosition> unlockedPositions = getUnlockedPositions(); //of my colour
+				List<PylosPosition> unlockedPositions = getUnlockedPositions();
+				//TODO: each time a move is simulated getUnlockedPositions is called again
+				//this is inefficient and perhaps should be removed
+				
 				//for every unlocked position
 				for(int i = 0; i < unlockedPositions.size(); i++) {
 					PylosPosition u = unlockedPositions.get(i);
@@ -398,6 +405,7 @@ public class PylosEnvironment {
 							//in the case of corner or edge squares the supposed locking position is
 							//off the board, so check if I'm in a valid position before trying
 							if(isEmpty(cr,cc,cl)) {
+								//TODO: probably should throw exception here
 								System.err.println("In getMoves");
 								System.err.println("empty under me");
 								System.err.println(u.x+" "+u.y+" "+u.z);
@@ -442,6 +450,9 @@ public class PylosEnvironment {
 					update(tmp,false);
 					//for every unlocked position
 					List<PylosPosition> tmpUnlockedPositions = getUnlockedPositions(); //of my colour
+					//TODO: each time a move is simulated getUnlockedPositions is called again
+					//this is inefficient and perhaps should be removed
+					
 					for(int i = 0; i < tmpUnlockedPositions.size(); i++) {
 						PylosPosition u = tmpUnlockedPositions.get(i);
 						//in this case, we cannot remove "from" since it no longer
@@ -469,6 +480,7 @@ public class PylosEnvironment {
 								cc = u.y+changeY[j];
 								cl = u.z-1;
 								if(isEmpty(cr,cc,cl)) {
+									//TODO: probably should throw exception here
 									System.err.println("In getMoves");
 									System.err.println("empty under me");
 									System.err.println(u.x+" "+u.y+" "+u.z);
