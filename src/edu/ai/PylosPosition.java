@@ -1,34 +1,26 @@
 package edu.ai;
 
-import agent.Action;
-
 /**
  * An immutable representation of a move in Pylos
  * @author ed
  */
-public final class PylosPosition implements Action {
+public final class PylosPosition {
 
-	private SphereColour colour;
-	private int x; //position horizontally
-	private int y; //position vertically in plane
-	private int z; //position depthwise
+	SphereColour colour;
+	int x; //position horizontally
+	int y; //position vertically in plane
+	int z; //position depthwise
 	
 	public PylosPosition(int x, int y, int z, SphereColour colour) {
 		setZ(z);
 		setY(y); setX(x);
 		setColour(colour);
 	}
-	
-	@Override
-	public double getCost() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 
 	public SphereColour getColour() {
 		return colour;
 	}
-
+	
 	private void setColour(SphereColour colour) {
 		this.colour = colour;
 	}
@@ -108,8 +100,47 @@ public final class PylosPosition implements Action {
 		this.z = z;
 	}
 	
-	public Object clone() {
-		PylosPosition p = new PylosPosition(this.x, this.y, this.z, this.colour);
-		return p;
+	public static boolean isValidPosition(int x, int y, int z) {
+		switch(z) {
+			case(0): {
+				if(x >= 3 || x < 0) {
+					return false;
+				}
+				if(y >= 3 || y < 0) {
+					return false;
+				}
+				break;
+			}
+			case(1): {
+				if(x >= 2 || x < 0) {
+					return false;
+				}
+				if(y >= 2 || y < 0) {
+					return false;
+				}
+				break;
+			}
+			case(2): {
+				if(x >= 1 || x < 0) {
+					return false;
+				}
+				if(y >= 1 || y < 0) {
+					return false;
+				}
+				break;
+			}
+			case(3): {
+				if(x != 0) {
+					return false;
+				}
+				if(y != 0) {
+					return false;
+				}
+				break;
+			}
+			default:
+				return false;
+		}
+		return true;
 	}
 }
