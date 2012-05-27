@@ -6,22 +6,22 @@ package edu.ai;
  */
 public final class PylosPosition {
 
-	SphereColour colour;
+	int colour;
 	int x; //position horizontally
 	int y; //position vertically in plane
 	int z; //position depthwise
 	
-	public PylosPosition(int x, int y, int z, SphereColour colour) {
+	public PylosPosition(int x, int y, int z, int colour) {
 		setZ(z);
 		setY(y); setX(x);
 		setColour(colour);
 	}
 
-	public SphereColour getColour() {
+	public int getColour() {
 		return colour;
 	}
 	
-	private void setColour(SphereColour colour) {
+	private void setColour(int colour) {
 		this.colour = colour;
 	}
 
