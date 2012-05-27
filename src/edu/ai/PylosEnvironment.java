@@ -5,20 +5,19 @@ import java.util.List;
 
 public class PylosEnvironment {
 
-	// Suggest: change boardRep to board
-	private int[][][] boardRep;
+	private int[][][] board;
 	private int currentPlayer;
 	
 	public PylosEnvironment() {
 		//WHITE is first to play
 		currentPlayer = SphereColour.WHITE;
-		boardRep = new int[4][][];
-		boardRep[0] = new int[4][4];
-		boardRep[1] = new int[3][3];
-		boardRep[2] = new int[2][2];
-		boardRep[3] = new int[1][1];
+		board = new int[4][][];
+		board[0] = new int[4][4];
+		board[1] = new int[3][3];
+		board[2] = new int[2][2];
+		board[3] = new int[1][1];
 		//ensure that BoardPositions begin as Empty
-		for(int[][] a : boardRep) {
+		for(int[][] a : board) {
 			for(int[] b : a) {
 				Arrays.fill(b, SphereColour.EMPTY);
 			}
@@ -75,7 +74,7 @@ public class PylosEnvironment {
 		//an invalid position should not be placable
 		//TODO: make exception here
 		if(!isValidPosition(x, y, z)) return false;
-		return boardRep[z][x][y] == SphereColour.EMPTY;
+		return board[z][x][y] == SphereColour.EMPTY;
 	}
 	
 	private boolean isLocked(int x, int y, int z) {
@@ -154,7 +153,7 @@ public class PylosEnvironment {
 	//move is atomic, will change the colour and attempt to make pattern and
 	//then change it back after its done
 	private boolean checkSquare(int x, int y, int z) {
-		boardRep[z][x][y] = currentPlayer;
+		board[z][x][y] = currentPlayer;
 		//clockwise square checking
 		//topleft,topright,bottomleft,bottomright
 		int[][] squareX = {{1,1,0},{0,-1,-1},{-1,-1,0},{0,1,1}};
@@ -167,15 +166,15 @@ public class PylosEnvironment {
 				cc = y+squareY[i][j];
 				cl = z;
 				if(isValidPosition(cr,cc,cl)) {
-					nSame += boardRep[cl][cr][cc] == currentPlayer ? 1 : 0;
+					nSame += board[cl][cr][cc] == currentPlayer ? 1 : 0;
 				}
 			}
 			if(nSame == 4) {
-				boardRep[z][y][x] = SphereColour.EMPTY;
+				board[z][y][x] = SphereColour.EMPTY;
 				return true;
 			}
 		}
-		boardRep[z][y][x] = SphereColour.EMPTY;
+		board[z][y][x] = SphereColour.EMPTY;
 		return false;
 	}
 	
@@ -183,7 +182,7 @@ public class PylosEnvironment {
 	//move is atomic, will change the colour and attempt to make pattern and
 	//then change it back after its done
 	private boolean moveMakesLine(int x, int y, int z, int depth) {
-		boardRep[z][x][y] = currentPlayer;
+		board[z][x][y] = currentPlayer;
 		int[] lineX = {0,0,1,-1}; //up,down,right,left
 		int[] lineY = {-1,1,0,0};
 		for(int i = 0; i < 4; i++) {
@@ -194,17 +193,17 @@ public class PylosEnvironment {
 				cc = y+j*lineY[i];
 				cl = z;
 				if(isValidPosition(cr,cc,cl)) {
-					nSame += boardRep[cl][cr][cc] == currentPlayer ? 1 : 0;
+					nSame += board[cl][cr][cc] == currentPlayer ? 1 : 0;
 				}
 				else break;
 			}
 			if(nSame == depth) {
 				//undo the move
-				boardRep[z][y][x] = SphereColour.EMPTY;
+				board[z][y][x] = SphereColour.EMPTY;
 				return true;
 			}
 		}
-		boardRep[z][y][x] = SphereColour.EMPTY;
+		board[z][y][x] = SphereColour.EMPTY;
 		return false;
 	}
 	
