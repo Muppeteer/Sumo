@@ -6,6 +6,7 @@ import java.util.List;
 
 public class PylosEnvironment {
 
+	// board[z][x][y] is the game board, where z = the level
 	private int[][][] board;
 	private int currentPlayer;
 	
@@ -25,7 +26,15 @@ public class PylosEnvironment {
 		}
 	}
 	
+	// Single call method to check all cases
 	public static boolean isValidPosition(int x, int y, int z) {
+		
+// REVIEW: what about something a little simpler? i.e.:
+		if(x < 0 || y < 0) return false;
+		if(x > (3-z) || y > (3-z) ) return false;
+		return true;	
+// REVIEW: ... and anyway, shouldn't the upper end bounds also be >, not >=?
+// e.g. x = 3 is fine on the bottom level, x = 4 is not. But use my code instead ;D
 		switch(z) {
 			case(0): {
 				if(x >= 3 || x < 0) {
@@ -71,6 +80,7 @@ public class PylosEnvironment {
 	
 	//note: following checker methods assume that they were checked beforehand,
 	//will die if not so
+// REVIEW: what does "were checked beforehand" mean?
 	private boolean isEmpty(int x, int y, int z) {
 		//an invalid position should not be placable
 		//TODO: make exception here
@@ -78,9 +88,11 @@ public class PylosEnvironment {
 		return board[z][x][y] == PylosColour.EMPTY;
 	}
 	
+// REVIEW: rather than checking each position's four parents (including impossible ones!),
+// why not go top-down and just lock each occupied position's supporting positions? More efficient :)
 	private boolean isLocked(int x, int y, int z) {
 		//TODO: make exception here
-		if(!isValidPosition(x, y, z)) return true; //invalid position is locked
+		if(!isValidPosition(x, y, z)) return true; //invalid position is "locked"
 		if(isEmpty(x,y,z)) {
 			return false; //position empty, of course not locked!
 		}
@@ -110,6 +122,9 @@ public class PylosEnvironment {
 		return !notLocked;
 	}
 	
+// REVIEW: suggest sticking with z/x/y for clarity, instead of i/j/k
+// REVIEW: also, you CAN do 
+// for(int[][] i : board) for(int[] j : i) for(int k : j) < DO STUFF (k being every element of board) >
 	private List<PylosPosition> getUnlockedPositions() {
 		List<PylosPosition> l = new ArrayList<PylosPosition>();
 		for(int i = 0; i < 4; i++) { //depth
@@ -125,6 +140,8 @@ public class PylosEnvironment {
 		return l;
 	}
 	
+	
+	
 	private boolean isPlayable(int x, int y, int z) {
 		//TODO: make exception here
 		if(!isValidPosition(x, y, z)) return false; //invalid position is not playable
@@ -137,6 +154,7 @@ public class PylosEnvironment {
 		//on the bottom row, am empty and not locked, why bother checking?
 		if(z == 0) return true;
 		else {
+// REVIEW: but if you know it's not locked, why check again?			
 			int[] changeX = {0,0,1,1};
 			int[] changeY = {0,1,1,0};
 			boolean canPlay = true;
@@ -167,6 +185,7 @@ public class PylosEnvironment {
 		}
 	}
 	
+// REVIEW: see getUnlockedPositions (not a big deal though)
 	private List<PylosMove> getPlayableMoves() {
 		List<PylosMove> l = new ArrayList<PylosMove>();
 		for(int i = 0; i < 4; i++) { //depth
@@ -184,6 +203,8 @@ public class PylosEnvironment {
 	//assumes x, y, z are valid
 	//move is atomic, will change the colour and attempt to make pattern and
 	//then change it back after its done
+// REVIEW: You mean it assumes board[z][x][y] is EMPTY, right?	
+// REViEW: could use a slightly more descriptive name - moveMakesSquare in line with the next method? 
 	private boolean checkSquare(int x, int y, int z) {
 		board[z][x][y] = currentPlayer;
 		//clockwise square checking
@@ -196,6 +217,7 @@ public class PylosEnvironment {
 				int cr,cc,cl; //change in row, column,layer
 				cr = x+squareX[i][j];
 				cc = y+squareY[i][j];
+// REVIEW: why use cl instead of z itself? After all, z doesn't change
 				cl = z;
 				if(isValidPosition(cr,cc,cl)) {
 					nSame += board[cl][cr][cc] == currentPlayer ? 1 : 0;
@@ -213,6 +235,7 @@ public class PylosEnvironment {
 	//assumes x, y, z are valid
 	//move is atomic, will change the colour and attempt to make pattern and
 	//then change it back after its done
+// REVIEW: Depth is redundant - use z to work it out (4-z ?)
 	private boolean moveMakesLine(int x, int y, int z, int depth) {
 		board[z][x][y] = currentPlayer;
 		int[] lineX = {0,0,1,-1}; //up,down,right,left
@@ -224,6 +247,9 @@ public class PylosEnvironment {
 				cr = x+j*lineX[i];
 				cc = y+j*lineY[i];
 				cl = z;
+// REVIEW: no need for cl here either?
+// REVIEW: Doesn't seem like this will catch any lines the new sphere is in the MIDDLE of
+// (i.e. only checks in one direction? at a time)
 				if(isValidPosition(cr,cc,cl)) {
 					nSame += board[cl][cr][cc] == currentPlayer ? 1 : 0;
 				}
@@ -245,6 +271,11 @@ public class PylosEnvironment {
 			return false;
 		}
 		//check in the up, down, left, right positions for lines
+		
+// REVIEW: more compact code than the following switch:
+		if(z < 2) return (moveMakesLine(x,y,z) || checkSquare(x,y,z);
+		else return checkSquare(x,y,z);
+// REVIEW: delete the switch at your leisure :)		
 		switch(z) {
 			case(0): {
 				//check for fourline in all dirs
@@ -285,6 +316,8 @@ public class PylosEnvironment {
 			currentPlayer = PylosColour.BLACK;
 		}
 		else currentPlayer = PylosColour.WHITE;
+// REVIEW: aww, why not my currentPlayer = (currentPlayer*2) % 3; ? It changes 1 to 2 and 2 to 1
+
 		if(m instanceof PylosRaiseMove) {
 			//TODO: make change (raise)
 		}
@@ -296,6 +329,7 @@ public class PylosEnvironment {
 		}
 	}
 	
+// REVIEW: I don't quiiite follow here, moar comments please? (could figure it out but not easily enough)
 	public List<PylosMove> getMoves() {
 		List<PylosMove> allMoves = new ArrayList<PylosMove>();
 		List<PylosMove> playableMoves = getPlayableMoves(); //places with nothing that i can play at
