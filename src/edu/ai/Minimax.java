@@ -26,12 +26,14 @@ public class Minimax extends PylosUtilityPlayer {
 	private int Utility(PylosEnvironment e) {
 		if(e.getWinner() == colour) return 1;
 		else return -1;
+//REVIEW:my suggestion is to get rid of this method entirely and use u.getCost(e)
 	}
 	
 //REVIEW: This method searches until it hits a Terminal node? That might be somewhat
 //dangerous...should a depth be introduced now? Would be kinda simple?
 	private int moveValue(PylosEnvironment e) {	
 		if ( e.isTerminal() ) {
+//REVIEW: suggest that this becomes u.getCost(e)
 			return Utility(e);
 		}
 		else if(e.currentPlayer == colour) {

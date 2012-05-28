@@ -9,11 +9,4 @@ public abstract class PylosUtilityPlayer extends PylosPlayer {
 		this.u = u;
 		// TODO Auto-generated constructor stub
 	}
-
-	@Override
-	public PylosMove getMove() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }
