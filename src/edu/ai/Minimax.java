@@ -3,7 +3,7 @@ package edu.ai;
 import java.util.*;
 
 
-public class Minimax extends PylosPlayer {
+public class Minimax extends PylosUtilityPlayer {
 	
 	// TODO: doMove function, accepts a PylosMove and a gameboard, returns ... uh
 	// TODO: fix PylosMove arguments and whatnot, a bit funky atm
@@ -13,8 +13,8 @@ public class Minimax extends PylosPlayer {
 //	private PylosEnvironment e;
 //	private PylosColour colour;
 	
-	public Minimax(PylosColour c) {
-		super(c);
+	public Minimax(PylosColour c, Utility u) {
+		super(c, u);
 		// TODO Auto-generated constructor stub
 	}
 
