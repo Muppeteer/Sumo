@@ -6,7 +6,7 @@ public class Mediator {
 
 	//game board
 	PylosEnvironment e;
-	
+	//players for white and black
 	PylosPlayer white, black;
 	
 	public Mediator(PylosPlayer w, PylosPlayer b) {
@@ -16,11 +16,11 @@ public class Mediator {
 	}
 	
 	//returns the colour of the winner
-	public PylosColour runGame() {
-		PylosColour curr = PylosColour.WHITE;
+	public int runGame() {
+		int curr = PylosColour.WHITE;
 		while(!e.isTerminal()) {
 			PylosMove m;
-			if(curr.equals(PylosColour.WHITE)) {
+			if(curr == PylosColour.WHITE) {
 				m = white.getMove();
 				e.update(m);
 				black.updateMove(m);
