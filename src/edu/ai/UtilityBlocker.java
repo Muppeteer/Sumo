@@ -21,7 +21,7 @@ public class UtilityBlocker implements IUtility {
 				}
 			}
 		}
-		return nLocked[c]-nLocked[PylosEnvironment.changeCurrent(c)];
+		return nLocked[PylosEnvironment.changeCurrent(c)]-nLocked[c];
 	}
 
 }
