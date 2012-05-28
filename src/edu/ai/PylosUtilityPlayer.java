@@ -30,5 +30,4 @@ public abstract class PylosUtilityPlayer extends PylosPlayer {
 		this(c,u,depthLimit, 2);
 	}
 	
-	public abstract PylosMove getMove();
 }
