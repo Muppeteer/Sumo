@@ -5,9 +5,9 @@ public abstract class PylosPlayer {
 
 	//internal game state representation
 	protected PylosEnvironment e;
-	protected PylosColour me;
+	protected int me;
 
-	public PylosPlayer(PylosColour c) {
+	public PylosPlayer(int c) {
 		e = new PylosEnvironment();
 		me = c;
 	}

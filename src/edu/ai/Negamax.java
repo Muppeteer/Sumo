@@ -8,7 +8,7 @@ public class Negamax extends PylosUtilityPlayer {
 	private final int depthLimit;
 	private int depth;
 	
-	public Negamax(PylosColour c, IUtility u, int depthLimit) {
+	public Negamax(int c, IUtility u, int depthLimit) {
 		super(c, u);
 		this.depthLimit = depthLimit;
 	}

@@ -8,7 +8,7 @@ public class Minimax extends PylosUtilityPlayer {
 	private final int depthLimit;
 	private int depth;
 	
-	public Minimax(PylosColour c, IUtility u, int depthLimit) {
+	public Minimax(int c, IUtility u, int depthLimit) {
 		super(c, u);
 		this.depthLimit = depthLimit;
 	}

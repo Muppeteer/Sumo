@@ -7,7 +7,7 @@ public class UtilityMaterial implements IUtility {
 		if(e.isTerminal()) {
 			return e.getWinner() == c ? 1000 : -1000;
 		}
-		return e.nPieces[c]-e.nPieces[e.changeCurrent(c)];
+		return e.nPieces[c]-e.nPieces[PylosEnvironment.changeCurrent(c)];
 	}
 
 }
