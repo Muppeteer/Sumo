@@ -14,7 +14,7 @@ public abstract class PylosPlayer {
 
 	public abstract PylosMove getMove();
 
-	public void updateMove(PylosMove m) {
+	public void doMove(PylosMove m) {
 		e.update(m);
 	}
 
