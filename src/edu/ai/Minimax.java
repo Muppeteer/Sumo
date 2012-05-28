@@ -5,26 +5,10 @@ import java.util.*;
 
 public class Minimax extends PylosUtilityPlayer {
 	
-	private final int depthLimit;
-	private int depth;
-	
 	public Minimax(int c, IUtility u, int depthLimit) {
-		super(c, u);
-		this.depthLimit = depthLimit;
-	}
-		
-	@Override
-	public void updateMove(PylosMove m) {
-		e.update(m);
-		depth++;
+		super(c, u, depthLimit);
 	}
 
-	@Override
-	public void undoMove(PylosMove m) {
-		e.undoMove(m);
-		depth--;
-	}
-	
 	private double moveValue(PylosEnvironment e) {	
 		if ( e.isTerminal() || depth == depthLimit)
 			return u.getUtility(e, me);
@@ -34,10 +18,10 @@ public class Minimax extends PylosUtilityPlayer {
 			double current = 0;
 			List<PylosMove> movelist = e.getMoves();
 			for (PylosMove x : movelist) {
-				updateMove(x);
+				doMove(x);
 				// Check utility of current move
 				current = moveValue(this.e);
-				if (max > current) {
+				if (max < current) {
 					max = current;
 					// bestMove = x;	TODO: track best future moves to reduce redundant calculation
 				}
@@ -50,10 +34,10 @@ public class Minimax extends PylosUtilityPlayer {
 			double current = 0;
 			List<PylosMove> movelist = e.getMoves();
 			for (PylosMove x : movelist) {
-				updateMove(x);
+				doMove(x);
 				// Check utility of current move
 				current = moveValue(this.e);
-				if (min < current) {
+				if (min > current) {
 					min = current;
 					// bestMove = x;	TODO: track best future moves to reduce redundant calculation
 				}
@@ -69,10 +53,10 @@ public class Minimax extends PylosUtilityPlayer {
 		PylosMove bestMove = null;
 		List<PylosMove> movelist = e.getMoves();
 		for (PylosMove x : movelist) {
-			updateMove(x);
+			doMove(x);
 			// Check utility of current move
 			current = moveValue(this.e);
-			if (max > current) {
+			if (max < current) {
 				max = current;
 				bestMove = x;
 			}
