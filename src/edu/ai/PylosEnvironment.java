@@ -10,10 +10,8 @@ public class PylosEnvironment {
 	int[][][] board;
 	//colour of current player
 	int currentPlayer;
-	//number of black pieces placed
-	int nBlack;
-	//number of white pieces placed
-	int nWhite;
+	//number of pieces remaining, empty, then black, then white
+	int nPieces[];
 	
 	public PylosEnvironment() {
 		//WHITE is first to play
@@ -29,20 +27,29 @@ public class PylosEnvironment {
 				Arrays.fill(b, PylosColour.EMPTY);
 			}
 		}
-		nBlack = nWhite = 0;
+		nPieces = new int[3];
+		nPieces[PylosColour.EMPTY] = 30;
+		nPieces[PylosColour.WHITE] = nPieces[PylosColour.BLACK] = 15;
 	}
 	
 	public boolean isTerminal() {
-		return nBlack == 15 || nWhite == 15;
+		for(int n : nPieces)
+			if(n == 0)
+			return true;
+			return false;
 	}
 	
 	// Be careful to ONLY call this when isTerminal is true, else will not work correctly
 	//returns null if isTerminal is not true
 	public int getWinner() {
-		if(nBlack == 15 && nWhite == 15) {
+		if(nPieces[PylosColour.WHITE] == 0 && nPieces[PylosColour.BLACK] == 0) {
 			return board[3][0][0];
-		}
-		else return nBlack >= 15 ? PylosColour.WHITE : nWhite >= 15 ? PylosColour.BLACK : null;
+			}
+			else if(nPieces[PylosColour.WHITE] == 0)
+			return PylosColour.WHITE;
+			else if(nPieces[PylosColour.BLACK] == 0)
+			return PylosColour.BLACK;
+			else return PylosColour.EMPTY;
 	}
 	
 	// Single call method to check all cases
@@ -56,7 +63,6 @@ public class PylosEnvironment {
 	//will die if not so
 	private boolean isEmpty(int x, int y, int z) {
 		//an invalid position should not be placeable
-		//TODO: make exception here
 		if(!isValidPosition(x, y, z)) throw new PylosGameStateException("isEmpty",x,y,z);
 		return board[z][x][y] == PylosColour.EMPTY;
 	}
@@ -280,42 +286,46 @@ public class PylosEnvironment {
 		return (c*2) % 3;
 	}
 	
+	private void place(int x, int y, int z, int colour) {
+		board[z][x][y] = colour;
+		nPieces[colour]--;
+		nPieces[PylosColour.EMPTY]--;
+	}
+	
+	private void remove(int x, int y, int z, int colour) {
+		board[z][x][y] = PylosColour.EMPTY;
+		nPieces[colour]++;
+		nPieces[PylosColour.EMPTY]++;
+	}
+	
 	// assumes that the destination for the piece is playable, and that the piece belongs to the current player
 	private void update(PylosMove m, boolean changeColour) {
 		
 		if(m instanceof PylosReturnMove) {
 			PylosReturnMove prm = (PylosReturnMove) m;
-			//TODO: make change (raise)
+			//make change (raise)
 			//then make removes
 			if(prm.raiseFrom != null) {
 				// Reimburse the player for the piece they would otherwise have played (below)
-				if(currentPlayer == PylosColour.BLACK) nBlack--;
-				else nWhite--;
 				// Remove the piece to be raised
 				PylosPosition p = prm.raiseFrom;
-				board[p.z][p.x][p.y] = PylosColour.EMPTY; 
+				remove(p.x,p.y,p.z,p.colour);
 			}
-			// Increase number of pieces PLAYED by the player
-			if(currentPlayer == PylosColour.BLACK) nBlack++;
-			else nWhite++;
 			// Insert the piece
-			board[prm.move.z][prm.move.x][prm.move.y] = m.move.colour;
+			place(m.move.x,m.move.y,m.move.z,m.move.colour);
 			for(PylosPosition p : prm.removals) {
-				if(currentPlayer == PylosColour.BLACK) nBlack--;
-				else nWhite--;
-				board[p.z][p.x][p.y] = PylosColour.EMPTY;
+				remove(p.x,p.y,p.z,p.colour);
 			}
 		}
 		
 		else if(m instanceof PylosRaiseMove) {
 			PylosRaiseMove prm = (PylosRaiseMove) m;
-			board[prm.raiseFrom.z][prm.raiseFrom.x][prm.raiseFrom.y] = PylosColour.EMPTY;
-			board[prm.move.z][prm.move.x][prm.move.y] = m.move.colour;
+			PylosPosition p = prm.raiseFrom;
+			remove(p.x,p.y,p.z,p.colour);
+			place(m.move.x,m.move.y,m.move.z,m.move.colour);
 		}
 		else {
-			if(currentPlayer == PylosColour.BLACK) nBlack++;
-			else nWhite++;
-			board[m.move.z][m.move.x][m.move.y] = m.move.colour;
+			place(m.move.x,m.move.y,m.move.z,m.move.colour);
 		}
 		if(changeColour) {
 			currentPlayer = changeCurrent(currentPlayer);
@@ -332,37 +342,82 @@ public class PylosEnvironment {
 		}
 		if(m instanceof PylosReturnMove) {
 			PylosReturnMove prm = (PylosReturnMove) m;
-			//TODO: make change (raise)
+			//make change (raise)
 			//then make removes
 			if(prm.raiseFrom != null) {
-				if(currentPlayer == PylosColour.BLACK) nBlack++;
-				else nWhite++;
 				PylosPosition p = prm.raiseFrom;
-				board[p.z][p.x][p.y] = currentPlayer; 
+				place(p.x,p.y,p.z,p.colour);
 			}
-			if(currentPlayer == PylosColour.BLACK) nBlack--;
-			else nWhite--;
-			board[prm.move.z][prm.move.x][prm.move.y] = PylosColour.EMPTY;
+			remove(m.move.x,m.move.y,m.move.z,m.move.colour);
 			for(PylosPosition p : prm.removals) {
-				if(currentPlayer == PylosColour.BLACK) nBlack++;
-				else nWhite++;
-				board[p.z][p.x][p.y] = currentPlayer; 
+				place(p.x,p.y,p.z,p.colour);
 			}
 		}
 		else if(m instanceof PylosRaiseMove) {
 			PylosRaiseMove prm = (PylosRaiseMove) m;
-			board[prm.raiseFrom.z][prm.raiseFrom.x][prm.raiseFrom.y] = currentPlayer;
-			board[prm.move.z][prm.move.x][prm.move.y] = PylosColour.EMPTY;
+			PylosPosition p = prm.raiseFrom;
+			place(p.x,p.y,p.z,p.colour);
+			remove(m.move.x,m.move.y,m.move.z,m.move.colour);
 		}
 		else {
-			if(currentPlayer == PylosColour.BLACK) nBlack--;
-			else nWhite--;
-			board[m.move.z][m.move.x][m.move.y] = PylosColour.EMPTY;
+			remove(m.move.x,m.move.y,m.move.z,m.move.colour);
 		}
 	}
 	
 	public void undoMove(PylosMove m) {
 		undoMove(m,true);
+	}
+	
+	private void addAllRemovals(PylosMove tmp, PylosPosition notAllowed, List<PylosMove> allMoves) {
+		//update board with your move
+		PylosPosition to = tmp.move;
+		PylosPosition from = null;
+		if(tmp instanceof PylosRaiseMove)
+			from = ((PylosRaiseMove)tmp).raiseFrom;
+		update(tmp,false);
+		//for every unlocked position
+		List<PylosPosition> tmpUnlockedPositions = getUnlockedPositions(); //of my colour
+	
+		for(int i = 0; i < tmpUnlockedPositions.size(); i++) {
+			PylosPosition u = tmpUnlockedPositions.get(i);
+			
+			//in this case, we cannot remove "from" since it no longer
+			//has a sphere there (it has been raised)
+			if(notAllowed != null && u.equals(notAllowed)) continue;
+			
+			//remove that position
+			allMoves.add(new PylosReturnMove(to,from,u));
+			//then remove another unlocked position
+			for(int j = i+1; j < tmpUnlockedPositions.size(); j++) {
+				PylosPosition u2 = tmpUnlockedPositions.get(j);
+				//like above, we cannot remove "from" since it no longer
+				//has a sphere there (it has been raised)
+				if(u2.equals(from)) continue;
+				allMoves.add(new PylosReturnMove(to,from,u,u2));
+			}
+			//finally try all the positions that were under you, and if they were
+			//unlocked then add them as a second remove
+			//but like above, only if u.z != 0
+			if(u.z != 0) {
+				int[] changeX = {0,0,1,1};
+				int[] changeY = {0,1,1,0};
+				for(int j = 0; j < 4; j++) {
+					int cr,cc,cl;
+					cr = u.x+changeX[j];
+					cc = u.y+changeY[j];
+					cl = u.z-1;
+					if(isEmpty(cr,cc,cl)) {
+						throw new PylosGameStateException("getMoves",cr,cc,cl);
+					}
+					PylosPosition u2 = new PylosPosition(cr,cc,cl,currentPlayer);
+					if(!isLocked(cr,cc,cl) && board[cl][cr][cc] == currentPlayer)
+						allMoves.add(new PylosReturnMove(to,from,u,u2));
+				}
+			}
+		}
+		
+		//undo your move
+		undoMove(tmp,false);
 	}
 	
 	//get all the moves that are available in a state
@@ -384,57 +439,7 @@ public class PylosEnvironment {
 			//if a pattern is formed, must remove
 			if(moveMakesPattern(p.x, p.y, p.z)) {
 				PylosMove tmp = new PylosMove(p);
-				//simulate move
-				update(tmp,false);
-				//all positions that are unlocked that have MY COLOUR in them
-				//these are all the positions that could be raised/removed from
-				List<PylosPosition> unlockedPositions = getUnlockedPositions();
-				//TODO: each time a move is simulated getUnlockedPositions is called again
-				//this is inefficient and perhaps should be removed
-// REVIEW: see earlier comment on how to avoid this
-				
-				//for every unlocked position
-				for(int i = 0; i < unlockedPositions.size(); i++) {
-					PylosPosition u = unlockedPositions.get(i);
-					
-					//remove that position
-					//add the one-removal move to the list, note that null indicates no raising done
-					allMoves.add(new PylosReturnMove(p,null,u));
-					
-					//then remove another unlocked position
-					for(int j = i+1; j < unlockedPositions.size(); j++) {
-						PylosPosition u2 = unlockedPositions.get(j);
-						allMoves.add(new PylosReturnMove(p,null,u,u2));
-					}
-					//finally try all the positions that were under you, and if they were
-					//unlocked then add them as a second remove
-					//but if u.z == 0 then there's no point in trying this
-					if(u.z != 0) {
-						int[] changeX = {0,0,1,1};
-						int[] changeY = {0,1,1,0};
-						for(int j = 0; j < 4; j++) {
-							int cr,cc,cl;
-							cr = u.x+changeX[j];
-							cc = u.y+changeY[j];
-							cl = u.z-1;
-							//in the case of corner or edge squares the supposed locking position is
-							//off the board, so check if I'm in a valid position before trying
-							if(isEmpty(cr,cc,cl)) {
-								//TODO: probably should throw exception here
-								System.err.println("In getMoves");
-								System.err.println("empty under me");
-								System.err.println(u.x+" "+u.y+" "+u.z);
-								System.err.println(cr+" "+cc+" "+cl);
-								continue;
-							}
-							PylosPosition u2 = new PylosPosition(cr,cc,cl,currentPlayer);
-							if(!isLocked(cr,cc,cl) && board[cl][cr][cc] == currentPlayer)
-								allMoves.add(new PylosReturnMove(p,null,u,u2));
-						}
-					}
-				}
-				//roll back move
-				undoMove(tmp,false);
+				addAllRemovals(tmp,null,allMoves);
 			}
 			//else just add yourself to moves
 			else {
@@ -447,9 +452,10 @@ public class PylosEnvironment {
 		//get all positions that are unlocked that have MY COLOUR in them
 		//these are all the positions that could be raised/removed from
 		List<PylosPosition> unlockedPositions = getUnlockedPositions(); //of my colour
-		for(int pos = 0; pos < unlockedPositions.size(); pos++) {
+		for(PylosPosition from : unlockedPositions) {
+//		for(int pos = 0; pos < unlockedPositions.size(); pos++) {
 			//the position we are raising from
-			PylosPosition from = unlockedPositions.get(pos);
+//			PylosPosition from = unlockedPositions.get(pos);
 // REVIEW: why not for(PylosPosition from : unlockedPositions) ?			
 			//the position we are raising to
 			for(PylosPosition to : playableMoves) {
@@ -463,60 +469,7 @@ public class PylosEnvironment {
 				if(moveMakesPattern(to.x, to.y, to.z)) {
 					//update board with your move
 					PylosRaiseMove tmp = new PylosRaiseMove(to,from);
-					update(tmp,false);
-					//for every unlocked position
-					List<PylosPosition> tmpUnlockedPositions = getUnlockedPositions(); //of my colour
-					//TODO: each time a move is simulated getUnlockedPositions is called again
-					//this is inefficient and perhaps should be removed
-// REVIEW yes, can be removed, see above suggestion					
-					for(int i = 0; i < tmpUnlockedPositions.size(); i++) {
-						PylosPosition u = tmpUnlockedPositions.get(i);
-						
-						//in this case, we cannot remove "from" since it no longer
-						//has a sphere there (it has been raised)
-						if(u.equals(from)) continue;
-						
-						//remove that position
-						allMoves.add(new PylosReturnMove(to,from,u));
-						//then remove another unlocked position
-						for(int j = i+1; j < tmpUnlockedPositions.size(); j++) {
-							PylosPosition u2 = tmpUnlockedPositions.get(j);
-							//like above, we cannot remove "from" since it no longer
-							//has a sphere there (it has been raised)
-							if(u2.equals(from)) continue;
-							allMoves.add(new PylosReturnMove(to,from,u,u2));
-						}
-						//finally try all the positions that were under you, and if they were
-						//unlocked then add them as a second remove
-						//but like above, only if u.z != 0
-						if(u.z != 0) {
-							int[] changeX = {0,0,1,1};
-							int[] changeY = {0,1,1,0};
-							for(int j = 0; j < 4; j++) {
-								int cr,cc,cl;
-								cr = u.x+changeX[j];
-								cc = u.y+changeY[j];
-								cl = u.z-1;
-								if(isEmpty(cr,cc,cl)) {
-									//TODO: probably should throw exception here
-									System.err.println("In getMoves");
-									System.err.println("empty under me");
-									System.err.println(u.x+" "+u.y+" "+u.z);
-									System.err.println(cr+" "+cc+" "+cl);
-									continue;
-								}
-								PylosPosition u2 = new PylosPosition(cr,cc,cl,currentPlayer);
-								if(!isLocked(cr,cc,cl) && board[cl][cr][cc] == currentPlayer)
-									allMoves.add(new PylosReturnMove(to,from,u,u2));
-							}
-						}
-					}
-					
-// REVIEW: seems bad practice to have duplicate code for going through the removals:
-// would be neater and safer to encapsulate into its own method, can do? 
-					
-					//undo your move
-					undoMove(tmp,false);
+					addAllRemovals(tmp,from,allMoves);
 				}
 				//else just add yourself to moves
 				else {

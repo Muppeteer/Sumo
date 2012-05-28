@@ -38,66 +38,12 @@ public final class PylosPosition {
 	}
 
 	private void setX(int x) {
-		switch(z) {
-			case(0): {
-				if(x > 3 || x < 0) {
-					throw new IllegalArgumentException("Tried to set x to " + x + ", expected to be within [0,3]");
-				}
-				break;
-			}
-			case(1): {
-				if(x > 2 || x < 0) {
-					throw new IllegalArgumentException("Tried to set x to " + x + ", expected to be within [0,2]");
-				}
-				break;
-			}
-			case(2): {
-				if(x > 1 || x < 0) {
-					throw new IllegalArgumentException("Tried to set x to " + x + ", expected to be within [0,1]");
-				}
-				break;
-			}
-			case(3): {
-				if(x != 0) {
-					throw new IllegalArgumentException("Tried to set x to " + x + ", expected to be 0");
-				}
-				break;
-			}
-			default:
-				break;
-		}
+		if(x < 0 || x > (3-z)) throw new IllegalArgumentException("Tried to set x to " + x + ", expected to be within [0,"+(3-z)+"]");
 		this.x = x;
 	}
 
 	private void setY(int y) {
-		switch(z) {
-			case(0): {
-				if(y > 3 || y < 0) {
-					throw new IllegalArgumentException("Tried to set y to " + y + ", expected to be within [0,3]");
-				}
-				break;
-			}
-			case(1): {
-				if(y > 2 || y < 0) {
-					throw new IllegalArgumentException("Tried to set y to " + y + ", expected to be within [0,2]");
-				}
-				break;
-			}
-			case(2): {
-				if(y > 1 || y < 0) {
-					throw new IllegalArgumentException("Tried to set y to " + y + ", expected to be within [0,1]");
-				}
-				break;
-			}
-			case(3): {
-				if(y != 0) {
-					throw new IllegalArgumentException("Tried to set y to " + y + ", expected to be 0");
-				}
-				break;
-			}
-			default:
-				break;
-		}
+		if(y < 0 || y > (3-z)) throw new IllegalArgumentException("Tried to set y to " + y + ", expected to be within [0,"+(3-z)+"]");
 		this.y = y;
 	}
 
