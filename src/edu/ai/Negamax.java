@@ -25,7 +25,7 @@ public class Negamax extends PylosUtilityPlayer {
 		depth--;
 	}
 	
-	private double moveValue(PylosEnvironment e) {	
+	private double moveValue(PylosEnvironmentSpecialLock e) {	
 		if ( e.isTerminal() || depth == depthLimit )
 			return u.getUtility(e, me);
 		// return the highest moveValue of successors

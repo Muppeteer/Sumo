@@ -4,11 +4,11 @@ package edu.ai;
 public abstract class PylosPlayer {
 
 	//internal game state representation
-	protected PylosEnvironment e;
+	protected PylosEnvironmentSpecialLock e;
 	protected PylosColour me;
 
 	public PylosPlayer(PylosColour c) {
-		e = new PylosEnvironment();
+		e = new PylosEnvironmentSpecialLock();
 		me = c;
 	}
 

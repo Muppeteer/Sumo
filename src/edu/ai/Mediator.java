@@ -5,12 +5,12 @@ package edu.ai;
 public class Mediator {
 
 	//game board
-	PylosEnvironment e;
+	PylosEnvironmentSpecialLock e;
 	//players for white and black
 	PylosPlayer white, black;
 	
 	public Mediator(PylosPlayer w, PylosPlayer b) {
-		e = new PylosEnvironment();
+		e = new PylosEnvironmentSpecialLock();
 		white = w;
 		black = b;
 	}
