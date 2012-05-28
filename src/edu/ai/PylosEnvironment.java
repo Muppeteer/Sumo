@@ -82,7 +82,7 @@ public class PylosEnvironment {
 // - isLocked just checks for validity and LOCKED status
 // - when moves are simulated, they are actually performed on that clone of the board
 // See update() for where I'd put the lock/unlock functions
-	private boolean isLocked(int x, int y, int z) {
+	protected boolean isLocked(int x, int y, int z) {
 //		//in representation of code, a locked piece is numerically represented by
 //		//the integer representation of that colour multipled by 3
 //		//so WHITE = 1, then WHITE_LOCKED = 3
