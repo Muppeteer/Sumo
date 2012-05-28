@@ -1,6 +1,6 @@
 package edu.ai;
 
-public class UtilityBasic implements Utility {
+public class UtilityBasic implements IUtility {
 
   @Override
 	public double getUtility(PylosEnvironment e, int c) {

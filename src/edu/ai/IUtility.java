@@ -1,6 +1,6 @@
 package edu.ai;
 
-public interface Utility {
+public interface IUtility {
 
 	public double getUtility(PylosEnvironment e, int c);
 
