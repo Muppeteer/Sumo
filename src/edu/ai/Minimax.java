@@ -30,7 +30,7 @@ public class Minimax extends PylosUtilityPlayer {
 			return u.getUtility(e, me);
 		else if(e.currentPlayer == me) {
 			// return the highest moveValue of successors
-			double max = -1000;
+			double max = -1001;
 			double current = 0;
 			List<PylosMove> movelist = e.getMoves();
 			for (PylosMove x : movelist) {
@@ -64,7 +64,7 @@ public class Minimax extends PylosUtilityPlayer {
 	}
 	
 	public PylosMove getMove() throws PylosUtilityException {
-		double max = -1000;
+		double max = -1001;
 		double current = 0;
 		PylosMove bestMove = null;
 		List<PylosMove> movelist = e.getMoves();
