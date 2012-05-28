@@ -130,6 +130,7 @@ public class PylosEnvironmentSpecialLock {
 		}
 	}
 	
+	
 	private void remove(int x, int y, int z, int colour) {
 		board[z][x][y] = PylosColour.EMPTY;
 		nPieces[colour]++;
@@ -418,8 +419,8 @@ public class PylosEnvironmentSpecialLock {
 				for(int i = 0; i < unlockedPositions.size(); i++) {
 					PylosPosition u = unlockedPositions.get(i);
 					PylosReturnMove tmpMove = new PylosReturnMove(p,null,u);
-					remove(u.x,u.y,u.z,u.colour);
 					//remove that position
+					remove(u.x,u.y,u.z,u.colour);
 					//add the one-removal move to the list, note that null indicates no raising done
 					allMoves.add(tmpMove);
 					//List<PylosPosition> tmpUnlockedPositions = getUnlockedPositions();
@@ -428,6 +429,7 @@ public class PylosEnvironmentSpecialLock {
 						PylosPosition u2 = unlockedPositions.get(j);
 						allMoves.add(new PylosReturnMove(p,null,u,u2));
 					}
+					//then remove any NEWLY unlocked positions
 					if(u.z != 0) {
 						int[] changeX = {0,0,1,1};
 						int[] changeY = {0,1,1,0};
@@ -441,12 +443,14 @@ public class PylosEnvironmentSpecialLock {
 							if(!isValidPosition(cr,cc,cl)) {
 								throw new PylosGameStateException("isPlayable", cr, cc, cl);
 							}
-							if(!isCovered(cr,cc,cl)) {
+//REVIEW: remove() already calls isCovered()		//if(!isCovered(cr,cc,cl)) {
+							if(!isLocked(cr,cc,cl)) {
 								PylosPosition u2 = new PylosPosition(cr,cc,cl,currentPlayer);
 								allMoves.add(new PylosReturnMove(p,null,u,u2));
 							}
 						}
 					}
+					// Put the original removed piece back
 					place(u.x,u.y,u.z,u.colour);
 				}
 				//roll back move
@@ -508,7 +512,8 @@ public class PylosEnvironmentSpecialLock {
 								if(!isValidPosition(cr,cc,cl)) {
 									throw new PylosGameStateException("isPlayable", cr, cc, cl);
 								}
-								if(!isCovered(cr,cc,cl)) {
+//REVIEW: remove() already calls isCovered()			//if(!isCovered(cr,cc,cl)) {
+								if(!isLocked(cr,cc,cl)) {
 									PylosPosition u2 = new PylosPosition(cr,cc,cl,currentPlayer);
 									allMoves.add(new PylosReturnMove(to,from,u,u2));
 								}
