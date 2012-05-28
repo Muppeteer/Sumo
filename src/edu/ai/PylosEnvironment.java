@@ -7,9 +7,9 @@ import java.util.List;
 public class PylosEnvironment {
 
 	// board[z][x][y] is the game board, where z = the level
-	PylosColour[][][] board;
+	int[][][] board;
 	//colour of current player
-	PylosColour currentPlayer;
+	int currentPlayer;
 	//number of black pieces placed
 	int nBlack;
 	//number of white pieces placed
@@ -18,14 +18,14 @@ public class PylosEnvironment {
 	public PylosEnvironment() {
 		//WHITE is first to play
 		currentPlayer = PylosColour.WHITE;
-		board = new PylosColour[4][][];
-		board[0] = new PylosColour[4][4];
-		board[1] = new PylosColour[3][3];
-		board[2] = new PylosColour[2][2];
-		board[3] = new PylosColour[1][1];
+		board = new int[4][][];
+		board[0] = new int[4][4];
+		board[1] = new int[3][3];
+		board[2] = new int[2][2];
+		board[3] = new int[1][1];
 		//ensure that BoardPositions begin as Empty
-		for(PylosColour[][] a : board) {
-			for(PylosColour[] b : a) {
+		for(int[][] a : board) {
+			for(int[] b : a) {
 				Arrays.fill(b, PylosColour.EMPTY);
 			}
 		}
@@ -37,11 +37,12 @@ public class PylosEnvironment {
 	}
 	
 	// Be careful to ONLY call this when isTerminal is true, else will not work correctly
-	public PylosColour getWinner() {
+	//returns null if isTerminal is not true
+	public int getWinner() {
 		if(nBlack == 15 && nWhite == 15) {
 			return board[3][0][0];
 		}
-		else return nBlack == 15 ? PylosColour.WHITE : PylosColour.BLACK;
+		else return nBlack >= 15 ? PylosColour.WHITE : nWhite >= 15 ? PylosColour.BLACK : null;
 	}
 	
 	// Single call method to check all cases
@@ -76,7 +77,6 @@ public class PylosEnvironment {
 // - when moves are simulated, they are actually performed on that clone of the board
 // See update() for where I'd put the lock/unlock functions
 	private boolean isLocked(int x, int y, int z) {
-//		//TODO: make exception here
 //		//in representation of code, a locked piece is numerically represented by
 //		//the integer representation of that colour multipled by 3
 //		//so WHITE = 1, then WHITE_LOCKED = 3
@@ -100,8 +100,6 @@ public class PylosEnvironment {
 			//in the case of corner or edge squares the supposed locking position is
 			//off the board, so check if I'm in a valid position before trying
 			if(!isValidPosition(cr,cc,cl)) {
-//				System.out.println("Tried to check if I was locked, got exception");
-//				System.out.println("I'm "+x+","+y+","+z+", testing " + cr+","+cc+","+cl);
 				continue;
 			}
 			try {
@@ -116,8 +114,7 @@ public class PylosEnvironment {
 		return !notLocked;
 	}
 	
-// REVIEW: I see what you did there: cool but misnomer, suggest isSupportedBy	
-	private boolean isLockedBy(int xtop,int ytop,int ztop,
+	private boolean isSupportedBy(int xtop,int ytop,int ztop,
 			int xbot,int ybot,int zbot) {
 		if(!isValidPosition(xtop, ytop, ztop))
 			throw new PylosGameStateException("isLockedBy",xtop,ytop,ztop);
@@ -161,18 +158,14 @@ public class PylosEnvironment {
 		return l;
 	}
 	
-
 	private boolean isPlayable(int x, int y, int z) {
 		if(!isValidPosition(x, y, z)) //return false; //invalid position is not playable
 			throw new PylosGameStateException("isPlayable", x, y, z);
 		//i.e. I need to know if there are squares underneath me, and none on top such that
 		//I can place something here
-		if(!isEmpty(x,y,z) || isLocked(x,y,z)) {
-			return false; //if I am locked, there are pieces on top of me
-			//if I am not locked, however, I may still be nonempty and so nonplayable
-// REVIEW: this confuses me: if you're just checking whether a square is empty and supported from beneath, you don't
-// need to check if it's locked, since if it's empty there cannot be a piece on top of it, and if it's not empty you can't
-// play onto that square :P
+		if(!isEmpty(x,y,z)) {
+			return false; 
+			//if not empty cannot play here
 		}
 		//on the bottom row, am empty and not locked, why bother checking?
 		if(z == 0)
@@ -182,9 +175,8 @@ public class PylosEnvironment {
 			int[] changeX = {0,0,1,1};
 			int[] changeY = {0,1,1,0};
 			boolean canPlay = true;
-			//check each of the possible four positions that could be on top of me
-			//that will cause me to be locked!
-// REVIEW: Isn't this checking the four possible positions BENEATH, for support?
+			//check each of the possible four positions that could be below me
+			//that are my supporters
 			for(int i = 0; i < 4; i++) {
 				int cr,cc,cl;
 				cr = x+changeX[i];
@@ -193,20 +185,10 @@ public class PylosEnvironment {
 				//in the case of corner or edge squares the supposed locking position is
 				//off the board, so check if I'm in a valid position before trying
 				if(!isValidPosition(cr,cc,cl)) {
-					System.err.println("Error: Went out of bounds trying to test below me");
-					continue;
+					throw new PylosGameStateException("isPlayable", cr, cc, cl);
 				}
-				try {
-					boolean isBelowFilled = !isEmpty(cr,cc,cl);
-					canPlay &= isBelowFilled;
-				}
-// REVIEW: Why try/catch? isEmpty itself checks to make sure the position is valid, AND you checked above it too
-// i.e. don't need to check more than once, right?
-				catch(ArrayIndexOutOfBoundsException e) {
-					System.err.println("Error, went out of bounds when checking below");
-					//just in case the check was bad, catch the exception and go on
-					continue;
-				}
+				boolean isBelowFilled = !isEmpty(cr,cc,cl);
+				canPlay &= isBelowFilled;
 			}
 			return canPlay;
 		}
@@ -261,19 +243,14 @@ public class PylosEnvironment {
 		int lineLength = 4 - z;
 		if(lineLength < 3) return false;
 		board[z][x][y] = currentPlayer;
-		int[] lineX = {0,0,1,-1}; //up,down,right,left
-		int[] lineY = {-1,1,0,0};
-		for(int i = 0; i < 4; i++) {
+		int[] lineX = {0,1}; //vertical,horizontal
+		int[] lineY = {1,0};
+		for(int i = 0; i < 2; i++) {
 			int nSame = 1;
 			for(int j = 1; j <= lineLength-1; j++) {
 				int cr,cc; //change in row, column
 				cr = (x+j*lineX[i]+lineLength)%(lineLength);
 				cc = (y+j*lineY[i]+lineLength)%(lineLength);
-// REVIEW: Doesn't seem like this will catch any lines the new sphere is in the MIDDLE of
-// (i.e. only checks in one direction? at a time)
-//TODO: Does it catch it now?
-// REVIEW: yup! and in fact you only need to go in one direction each time now :D
-// i.e. lineX = {0, 1} and LineY = {1, 0} since they'll wrap around
 				if(isValidPosition(cr,cc,z) && board[z][cr][cc] == currentPlayer) {
 					nSame++;
 				}
@@ -291,22 +268,16 @@ public class PylosEnvironment {
 	}
 	
 	// Assumes that the given move is playable
-// REVIEW: since this will only be called on playable moves, which are known to be valid, why check again?
 	private boolean moveMakesPattern(int x, int y, int z) {
-		if(!isValidPosition(x,y,z)) { //invalid positions do not make patterns
-			//return false;
-			throw new PylosGameStateException("moveMakesPattern",x,y,z);
-		}
 		//check in the up, down, left, right positions for lines
 		if(z < 2) return (moveMakesLine(x,y,z) || moveMakesSquare(x,y,z));
 		else return moveMakesSquare(x,y,z);
 	}
 	
-	public static PylosColour changeCurrent(PylosColour c) {
-		if(c == PylosColour.WHITE)
-			return PylosColour.BLACK;
-		else
-			return PylosColour.WHITE;
+	public static int changeCurrent(int c) {
+		//this will switch players due to their representations as ints
+		//currentPlayer = (currentPlayer*2) % 3;
+		return (c*2) % 3;
 	}
 	
 	// assumes that the destination for the piece is playable, and that the piece belongs to the current player
@@ -349,17 +320,12 @@ public class PylosEnvironment {
 		if(changeColour) {
 			currentPlayer = changeCurrent(currentPlayer);
 		}
-		//this will switch players due to their representations as ints
-		//currentPlayer = (currentPlayer*2) % 3;
 	}
 	
-// REVIEW: fill the blank (why allow a move to be made without changing player..?)	
-	// Overloaded update() allows 'real' game board updates with one argument, or _______
 	public void update(PylosMove m) {
 		update(m,true);
 	}
-	
-// REVIEW: What's this for?
+
 	private void undoMove(PylosMove m, boolean changeColour) {
 		if(changeColour) {
 			currentPlayer = changeCurrent(currentPlayer);
@@ -462,7 +428,7 @@ public class PylosEnvironment {
 								continue;
 							}
 							PylosPosition u2 = new PylosPosition(cr,cc,cl,currentPlayer);
-							if(!isLocked(cr,cc,cl) && board[cl][cr][cc].equals(currentPlayer))
+							if(!isLocked(cr,cc,cl) && board[cl][cr][cc] == currentPlayer)
 								allMoves.add(new PylosReturnMove(p,null,u,u2));
 						}
 					}
@@ -490,7 +456,7 @@ public class PylosEnvironment {
 				//if the "raise" will bring the desired piece to a lower level or
 				//the "raise" will raise one of the supporting pieces up,
 				//do nothing and continue
-				if(from.z >= to.z || isLockedBy(to.x,to.y,to.z,from.x,from.y,from.z)) {
+				if(from.z >= to.z || isSupportedBy(to.x,to.y,to.z,from.x,from.y,from.z)) {
 					continue;
 				}
 				//if a pattern is formed, go to removes
@@ -540,7 +506,7 @@ public class PylosEnvironment {
 									continue;
 								}
 								PylosPosition u2 = new PylosPosition(cr,cc,cl,currentPlayer);
-								if(!isLocked(cr,cc,cl) && board[cl][cr][cc].equals(currentPlayer))
+								if(!isLocked(cr,cc,cl) && board[cl][cr][cc] == currentPlayer)
 									allMoves.add(new PylosReturnMove(to,from,u,u2));
 							}
 						}
