@@ -8,49 +8,49 @@ public class MoveTranslator {
 		switch(s.charAt(0)) {
 			case('a'):
 				z = 0;
-				y = 0;
+				x = 0;
 				break;
 			case('b'):
 				z = 0;
-				y = 1;
+				x = 1;
 				break;
 			case('c'):
 				z = 0;
-				y = 2;
+				x = 2;
 				break;
 			case('d'):
 				z = 0;
-				y = 3;
+				x = 3;
 				break;
 			case('e'):
 				z = 1;
-				y = 0;
+				x = 0;
 				break;
 			case('f'):
 				z = 1;
-				y = 1;
+				x = 1;
 				break;
 			case('g'):
 				z = 1;
-				y = 2;
+				x = 2;
 				break;
 			case('h'):
 				z = 2;
-				y = 0;
+				x = 0;
 				break;
 			case('i'):
 				z = 2;
-				y = 1;
+				x = 1;
 				break;
 			case('j'):
 				z = 3;
-				y = 0;
+				x = 0;
 				break;
 			default:
 				throw new PylosInterfaceException(s);
 		}
 		int k = Integer.parseInt(s.substring(1));
-		x = k-1;
+		y = k-1;
 		PylosPosition p = null;
 		try {
 			p = new PylosPosition(x,y,z,colour);
@@ -82,9 +82,9 @@ public class MoveTranslator {
 			default:
 				throw new IllegalArgumentException("The provided position does not exist");
 		}
-		c += y-1;
+		c += x;
 		s.append(c);
-		s.append(x-1);
+		s.append(y+1);
 		return s.toString();
 	}
 	

@@ -8,4 +8,12 @@ public class PylosRaiseMove extends PylosMove {
 		super(pos);
 		this.raiseFrom = raiseFrom;
 	}
+	
+	public boolean equals(Object o) {
+		if(o instanceof PylosRaiseMove) {
+			PylosRaiseMove prm = (PylosRaiseMove) o;
+			return prm.move.equals(move) && prm.raiseFrom.equals(raiseFrom);
+		}
+		return false;
+	}
 }

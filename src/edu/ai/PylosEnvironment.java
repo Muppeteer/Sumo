@@ -423,10 +423,6 @@ public class PylosEnvironment {
 	//get all the moves that are available in a state
 	//gets all possible moves and simulates them
 	//if they form a pattern then it will add in all possible removals
-// REVIEW: isn't including all possible removals for each removal move is an unnecessary blow-out of game space permutations?
-// Better would be to split it: i.e. first simply get all moves, and if any are removals, the calling function calls
-// another function to get all possible removals. It works because the fact THAT a removal is provided by a move is 
-// the important part, as far as utility is concerned. What do you think?
 	public List<PylosMove> getMoves() {
 		//allmoves will be returned with all possible moves
 		//each of these will be positions that are possible to play
@@ -453,10 +449,7 @@ public class PylosEnvironment {
 		//these are all the positions that could be raised/removed from
 		List<PylosPosition> unlockedPositions = getUnlockedPositions(); //of my colour
 		for(PylosPosition from : unlockedPositions) {
-//		for(int pos = 0; pos < unlockedPositions.size(); pos++) {
 			//the position we are raising from
-//			PylosPosition from = unlockedPositions.get(pos);
-// REVIEW: why not for(PylosPosition from : unlockedPositions) ?			
 			//the position we are raising to
 			for(PylosPosition to : playableMoves) {
 				//if the "raise" will bring the desired piece to a lower level or

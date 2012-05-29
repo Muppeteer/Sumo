@@ -1,5 +1,6 @@
 package edu.ai;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class PylosHumanPlayer extends PylosPlayer {
@@ -20,6 +21,23 @@ public class PylosHumanPlayer extends PylosPlayer {
 		while(p == null) {
 			try {
 				p = m.notationToPylosPos(line, me);
+				List<PylosMove> l = e.getMoves();
+				boolean found = false;
+				for(PylosMove m : l) {
+					if(m instanceof PylosReturnMove && p instanceof PylosReturnMove) {
+						found = ((PylosReturnMove)p).equals(m);
+					}
+					else if(m instanceof PylosRaiseMove && p instanceof PylosRaiseMove) {
+						found = ((PylosRaiseMove)p).equals(m);
+					}
+					else {
+						found = p.equals(m);
+					}
+					if(found) break;
+				}
+				if(!found) {
+					throw new PylosInterfaceException(line);
+				}
 			}
 			catch(PylosInterfaceException e) {
 				p = null;

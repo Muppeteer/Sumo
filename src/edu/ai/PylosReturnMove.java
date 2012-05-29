@@ -17,4 +17,21 @@ public class PylosReturnMove extends PylosRaiseMove {
 			this.removals.add(removals[i]);
 		}
 	}
+	
+	public boolean equals(Object o) {
+		if(o instanceof PylosReturnMove) {
+			PylosReturnMove prm = (PylosReturnMove) o;
+			if(this.raiseFrom == null && prm.raiseFrom != null) return false;
+			if(this.raiseFrom != null && prm.raiseFrom == null) return false;
+			if(!raiseFrom.equals(prm.raiseFrom)) return false;
+			int nSame = 0;
+			for(PylosPosition p : removals) {
+				for(PylosPosition p2 : prm.removals) {
+					if(p.equals(p2)) nSame++;
+				}
+			}
+			return nSame == removals.size() && prm.move.equals(move);
+		}
+		return false;
+	}
 }

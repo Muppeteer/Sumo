@@ -23,9 +23,7 @@ public class Mediator {
 			System.out.println("Layer "+z);
 			for(int x = 0; x < 4-z; x++) {
 				for(int y = 0; y < 4-z; y++) {
-					int num = e.board[z][x][y] == PylosColour.BLACK ? 1 :
-						e.board[z][x][y] == PylosColour.WHITE ? 2 : 0;
-					System.out.print(num);
+					System.out.print(e.board[z][x][y]);
 				}
 				System.out.println();
 			}
@@ -47,15 +45,19 @@ public class Mediator {
 			System.out.println("It's " + mt.colourName(e.currentPlayer) + "'s move.");
 			if(e.currentPlayer == PylosColour.WHITE) {
 				m = white.getMove();
+				System.out.println("colour "+m.move.colour);
 				e.update(m);
 				black.doMove(m);
+				white.doMove(m);
 			}
 			else {
 				m = black.getMove();
+				System.out.println("colour "+m.move.colour);
 				e.update(m);
 				white.doMove(m);
+				black.doMove(m);
 			}
-			System.out.println(mt.colourName(e.currentPlayer) + "'s move is:");
+			System.out.println(mt.colourName(m.move.colour) + "'s move is:");
 			System.out.println(mt.pylosMoveToNotation(m));
 			System.out.println();
 			printBoard();
@@ -68,7 +70,7 @@ public class Mediator {
 		PylosPlayer black, white;
 		black = new PylosHumanPlayer(PylosColour.BLACK);
 		white = new PylosHumanPlayer(PylosColour.WHITE);
-		Mediator m = new Mediator(black,white);
+		Mediator m = new Mediator(white,black);
 		m.runGame();
 	}
 	
