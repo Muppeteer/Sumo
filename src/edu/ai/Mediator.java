@@ -19,15 +19,17 @@ public class Mediator {
 	}
 	
 	public void printBoard() {
-		for(int z = 0; z < 4; z++) {
-			System.out.println("Layer "+z);
-			for(int x = 0; x < 4-z; x++) {
-				for(int y = 0; y < 4-z; y++) {
+		for(int z = 0; z < 4; z++) System.out.print("Layer "+z+"\t");
+		System.out.println();
+		for(int y = 0; y < 4; y++) {
+			for(int z = 0; z < 4; z++) {
+				for(int x = 0; x < 4-z; x++) {
+					if(y >= 4-z) continue;
 					System.out.print(e.board[z][x][y]);
 				}
-				System.out.println();
+				System.out.print("\t");
 			}
-			System.out.println("----------");
+			System.out.println();
 		}
 		System.out.println("Black: " + e.nPieces[PylosColour.BLACK] + " and White: " + e.nPieces[PylosColour.WHITE]);
 		System.out.println("----------");
