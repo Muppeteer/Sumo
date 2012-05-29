@@ -34,6 +34,7 @@ public class NegamaxAB extends Negamax {
 		return alpha;
 	}
 	
+	// Primary function called to obtain best move 
 	public PylosMove getMove() {
 		double alpha = -1001;
 		double beta = 1001;
