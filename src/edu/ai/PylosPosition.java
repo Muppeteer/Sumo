@@ -57,7 +57,7 @@ public final class PylosPosition {
 	public boolean equals(Object o) {
 		if(o instanceof PylosPosition) {
 			PylosPosition p = (PylosPosition) o;
-			return p.x == x && p.y == y && p.z == z && p.colour == colour;
+			return p.x == x && p.y == y && p.z == z;// && p.colour == colour;
 		}
 		return false;
 	}
