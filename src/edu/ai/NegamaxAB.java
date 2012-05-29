@@ -5,6 +5,7 @@ import java.util.*;
 
 public class NegamaxAB extends Negamax {
 
+	MoveTranslator mt = new MoveTranslator();
 	public NegamaxAB(int c, IUtility u) {
 		super(c, u);
 	}
@@ -17,16 +18,18 @@ public class NegamaxAB extends Negamax {
 		double current = 0;
 		List<PylosMove> movelist = e.getMoves();
 		for (PylosMove x : movelist) {
-			doMove(x);
-			// Check utility of current move
-			current = -moveValue(this.e, -beta, -alpha, depthLimit);	// Order swapped because
-			if (current >= beta) {
+			if(e.verifyMove(x)) {
+				doMove(x);
+				// Check utility of current move
+				current = -moveValue(this.e, -beta, -alpha, depthLimit);	// Order swapped because
+				if (current >= beta) {
+					undoMove(x);
+					return beta;
+				} else if (current > alpha) {
+					alpha = current;
+				}
 				undoMove(x);
-				return beta;
-			} else if (current > alpha) {
-				alpha = current;
 			}
-			undoMove(x);
 		}
 		return alpha;
 	}
@@ -39,20 +42,23 @@ public class NegamaxAB extends Negamax {
 		List<PylosMove> movelist = e.getMoves();
 		long curTime = System.currentTimeMillis();
 		int dl = 1;
+		
 		while(System.currentTimeMillis() - curTime < timeLimitMS/4) {
 			for (PylosMove x : movelist) {
 				depth = 0;
-				doMove(x);
-				// Check utility of current move
-				current = moveValue(this.e, alpha, beta, dl);
-				if (alpha < current) {
-					alpha = current;
-					bestMove = x;
+				if(dl == 1) System.out.println(mt.pylosMoveToNotation(x));
+				if(e.verifyMove(x)) {
+					doMove(x);
+					// Check utility of current move
+					current = moveValue(this.e, alpha, beta, dl);
+					if (alpha < current) {
+						alpha = current;
+						bestMove = x;
+					}
+					undoMove(x);
+					if (alpha >= beta) break;	// Beta prune
 				}
-				undoMove(x);
-				if (alpha >= beta) break;	// Beta prune
 			}
-			System.out.println(dl);
 			dl++;
 		}
 		System.out.println("Took "+(System.currentTimeMillis() - curTime) +"ms to move");

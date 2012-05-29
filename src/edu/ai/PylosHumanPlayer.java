@@ -21,16 +21,16 @@ public class PylosHumanPlayer extends PylosPlayer {
 		while(p == null) {
 			try {
 				p = m.notationToPylosPos(line, me);
-//				if(!e.verifyMove(p)) throw new PylosInterfaceException(line);
-				List<PylosMove> l = e.getMoves();
-				boolean found = false;
-				for(PylosMove m : l) {
-					found = p.equals(m);
-					if(found) break;
-				}
-				if(!found) {
-					throw new PylosInterfaceException(line);
-				}
+				if(!e.verifyMove(p)) throw new PylosInterfaceException(line);
+//				List<PylosMove> l = e.getMoves();
+//				boolean found = false;
+//				for(PylosMove m : l) {
+//					found = p.equals(m);
+//					if(found) break;
+//				}
+//				if(!found) {
+//					throw new PylosInterfaceException(line);
+//				}
 			}
 			catch(PylosInterfaceException e) {
 				p = null;

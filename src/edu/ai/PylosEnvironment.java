@@ -156,8 +156,6 @@ public class PylosEnvironment {
 			//in the case of corner or edge squares the supposed locking position is
 			//off the board, so check if I'm in a valid position before trying
 			if(isEmpty(cr,cc,cl)) {
-				System.err.println("Error, either empty OR");
-				System.err.println("Error: Went out of bounds trying to lock/unlock below me");
 				continue;
 			}
 			if(cr == xbot && cc == ybot && cl == zbot)
@@ -318,22 +316,25 @@ public class PylosEnvironment {
 	public boolean verifyMove(PylosMove m) {
 		if(m instanceof PylosReturnMove) {
 			PylosReturnMove prm = (PylosReturnMove) m;
-			//make change (raise)
-			//then make removes
 			if(prm.raiseFrom != null) {
-				// Reimburse the player for the piece they would otherwise have played (below)
-				// Remove the piece to be raised
 				PylosPosition p = prm.raiseFrom;
 				if(isLocked(p.x,p.y,p.z) || board[p.z][p.x][p.y] != p.colour) return false;
 			}
-			// Insert the piece
 			if(!isEmpty(m.move.x,m.move.y,m.move.z)) return false;
 			if(!moveMakesPattern(m.move.x,m.move.y,m.move.z)) return false;
 			for(PylosPosition p : prm.removals) {
-				if(isLocked(p.x,p.y,p.z) || board[p.z][p.x][p.y] != p.colour) return false;
+				boolean okay = p.equals(m.move);
+				for(PylosPosition p2 : prm.removals) {
+					if(p.equals(p2)) continue;
+					if(isSupportedBy(p2.x, p2.y, p2.z, p.x, p.y, p.z)) {
+						okay = true;
+					}
+				}
+				if(!okay && (isLocked(p.x,p.y,p.z) || board[p.z][p.x][p.y] != p.colour)) {
+					return false;
+				}
 			}
 		}
-		
 		else if(m instanceof PylosRaiseMove) {
 			PylosRaiseMove prm = (PylosRaiseMove) m;
 			PylosPosition p = prm.raiseFrom;
@@ -427,7 +428,7 @@ public class PylosEnvironment {
 		update(tmp,false);
 		//for every unlocked position
 		List<PylosPosition> tmpUnlockedPositions = getUnlockedPositions(); //of my colour
-	
+		
 		for(int i = 0; i < tmpUnlockedPositions.size(); i++) {
 			PylosPosition u = tmpUnlockedPositions.get(i);
 			
@@ -436,8 +437,9 @@ public class PylosEnvironment {
 			if(notAllowed != null && u.equals(notAllowed)) continue;
 			PylosReturnMove prm = new PylosReturnMove(to,from,u);
 			//remove that position
-			if(verifyMove(prm))
+			if(verifyMove(prm)) {
 				allMoves.add(prm);
+			}
 			//then remove another unlocked position
 			for(int j = i+1; j < tmpUnlockedPositions.size(); j++) {
 				PylosPosition u2 = tmpUnlockedPositions.get(j);
@@ -445,8 +447,9 @@ public class PylosEnvironment {
 				//has a sphere there (it has been raised)
 				if(u2.equals(notAllowed)) continue;
 				PylosReturnMove m2 = new PylosReturnMove(to,from,u,u2);
-				if(verifyMove(m2))
+				if(verifyMove(m2)) {
 					allMoves.add(m2);
+				}
 			}
 			//finally try all the positions that were under you, and if they were
 			//unlocked then add them as a second remove
@@ -460,7 +463,7 @@ public class PylosEnvironment {
 					cc = u.y+changeY[j];
 					cl = u.z-1;
 					if(isEmpty(cr,cc,cl)) {
-						throw new PylosGameStateException("getMoves",cr,cc,cl);
+						throw new PylosGameStateException("getAllRemovals",cr,cc,cl);
 					}
 					PylosPosition u2 = new PylosPosition(cr,cc,cl,currentPlayer);
 					if(!isLocked(cr,cc,cl) && board[cl][cr][cc] == currentPlayer) {
@@ -469,8 +472,8 @@ public class PylosEnvironment {
 					}
 				}
 			}
+			
 		}
-		
 		//undo your move
 		undoMove(tmp,false);
 	}
@@ -495,9 +498,7 @@ public class PylosEnvironment {
 			//else just add yourself to moves
 			else {
 				PylosMove m = new PylosMove(p);
-//				if(verifyMove(m)) {
 					allMoves.add(m);
-//				}
 			}
 		}
 		
@@ -525,9 +526,7 @@ public class PylosEnvironment {
 				//else just add yourself to moves
 				else {
 					PylosRaiseMove m = new PylosRaiseMove(to,from);
-//					if(verifyMove(m)) {
 						allMoves.add(m);
-//					}
 				}
 			}
 		}

@@ -53,6 +53,7 @@ public class Mediator {
 		PylosPlayer black, white;
 		black = new PylosHumanPlayer(PylosColour.BLACK);
 		white = new NegamaxAB(PylosColour.WHITE, new UtilityMaterial());
+//		white = new PylosHumanPlayer(PylosColour.WHITE);
 		Mediator m = new Mediator(white,black);
 		m.runGame();
 	}
