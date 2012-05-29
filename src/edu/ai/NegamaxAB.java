@@ -5,11 +5,11 @@ import java.util.*;
 
 public class NegamaxAB extends Negamax {
 
-  public NegamaxAB(int c, IUtility u, int depthLimit) {
-		super(c, u, depthLimit);
+	public NegamaxAB(int c, IUtility u) {
+		super(c, u);
 	}
 
-	private double moveValue(PylosEnvironment e, double alpha, double beta) {	
+	protected double moveValue(PylosEnvironment e, double alpha, double beta, int depthLimit) {	
 		if ( e.isTerminal() || depth == depthLimit )
 			return u.getUtility(e, me) * (e.currentPlayer == me ? 1 : -1);
 		// If search ended on MY turn, OPPONENT had last move, and their utility is -(MY utility)
@@ -19,7 +19,7 @@ public class NegamaxAB extends Negamax {
 		for (PylosMove x : movelist) {
 			doMove(x);
 			// Check utility of current move
-			current = -moveValue(this.e, -beta, -alpha);	// Order swapped because
+			current = -moveValue(this.e, -beta, -alpha, depthLimit);	// Order swapped because
 			if (current >= beta) {
 				undoMove(x);
 				return beta;
@@ -37,19 +37,26 @@ public class NegamaxAB extends Negamax {
 		double current = 0;
 		PylosMove bestMove = null;
 		List<PylosMove> movelist = e.getMoves();
-		for (PylosMove x : movelist) {
-			doMove(x);
-			// Check utility of current move
-			current = moveValue(this.e, alpha, beta);
-			if (alpha < current) {
-				alpha = current;
-				bestMove = x;
+		long curTime = System.currentTimeMillis();
+		int dl = 1;
+		while(System.currentTimeMillis() - curTime < timeLimitMS/4) {
+			for (PylosMove x : movelist) {
+				depth = 0;
+				doMove(x);
+				// Check utility of current move
+				current = moveValue(this.e, alpha, beta, dl);
+				if (alpha < current) {
+					alpha = current;
+					bestMove = x;
+				}
+				undoMove(x);
+				if (alpha >= beta) break;	// Beta prune
 			}
-			undoMove(x);
-			if (alpha >= beta) break;	// Beta prune
+			System.out.println(dl);
+			dl++;
 		}
+		System.out.println("Took "+(System.currentTimeMillis() - curTime) +"ms to move");
 		if(bestMove == null) throw new PylosUtilityException(alpha);
 		return bestMove;
 	}
-					
 }

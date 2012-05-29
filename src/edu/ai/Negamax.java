@@ -5,11 +5,11 @@ import java.util.*;
 
 public class Negamax extends PylosUtilityPlayer {
 	
-	public Negamax(int c, IUtility u, int depthLimit) {
-		super(c, u, depthLimit);
+	public Negamax(int c, IUtility u) {
+		super(c, u);
 	}
 
-	private double moveValue(PylosEnvironment e) {	
+	protected double moveValue(PylosEnvironment e, int depthLimit) {	
 		if ( e.isTerminal() || depth == depthLimit )
 			return u.getUtility(e, me) * (e.currentPlayer == me ? -1 : 1);
 		// If search ended on MY turn, OPPONENT had last move, and their utility is -(MY utility)
@@ -21,7 +21,7 @@ public class Negamax extends PylosUtilityPlayer {
 		for (PylosMove x : movelist) {
 			doMove(x);
 			// Check utility of current move
-			current = -moveValue(this.e);
+			current = -moveValue(this.e, depthLimit);
 			if (max < current) {
 				max = current;
 				// bestMove = x;	TODO: track best future moves to reduce redundant calculation
@@ -36,15 +36,20 @@ public class Negamax extends PylosUtilityPlayer {
 		double current = 0;
 		PylosMove bestMove = null;
 		List<PylosMove> movelist = e.getMoves();
-		for (PylosMove x : movelist) {
-			doMove(x);
-			// Check utility of current move
-			current = moveValue(this.e);
-			if (max < current) {
-				max = current;
-				bestMove = x;
+		long curTime = System.currentTimeMillis();
+		int dl = 1;
+		while(System.currentTimeMillis() - curTime < timeLimitMS) {
+			for (PylosMove x : movelist) {
+				doMove(x);
+				// Check utility of current move
+				current = moveValue(this.e, dl);
+				if (max < current) {
+					max = current;
+					bestMove = x;
+				}
+				undoMove(x);
 			}
-			undoMove(x);
+			dl++;
 		}
 		if(bestMove == null) throw new PylosUtilityException(max);
 		return bestMove;

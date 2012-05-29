@@ -6,6 +6,23 @@ import java.util.List;
 
 public class PylosEnvironment {
 
+	public void printBoard() {
+		for(int z = 0; z < 4; z++) System.out.print("Layer "+z+"\t");
+		System.out.println();
+		for(int y = 0; y < 4; y++) {
+			for(int z = 0; z < 4; z++) {
+				for(int x = 0; x < 4-z; x++) {
+					if(y >= 4-z) continue;
+					System.out.print(board[z][x][y]);
+				}
+				System.out.print("\t");
+			}
+			System.out.println();
+		}
+		System.out.println("Black: " + nPieces[PylosColour.BLACK] + " and White: " + nPieces[PylosColour.WHITE]);
+		System.out.println("----------");
+	}
+	
 	// board[z][x][y] is the game board, where z = the level
 	int[][][] board;
 	//colour of current player
@@ -298,6 +315,39 @@ public class PylosEnvironment {
 		nPieces[PylosColour.EMPTY]++;
 	}
 	
+	public boolean verifyMove(PylosMove m) {
+		if(m instanceof PylosReturnMove) {
+			PylosReturnMove prm = (PylosReturnMove) m;
+			//make change (raise)
+			//then make removes
+			if(prm.raiseFrom != null) {
+				// Reimburse the player for the piece they would otherwise have played (below)
+				// Remove the piece to be raised
+				PylosPosition p = prm.raiseFrom;
+				if(isLocked(p.x,p.y,p.z) || board[p.z][p.x][p.y] != p.colour) return false;
+			}
+			// Insert the piece
+			if(!isEmpty(m.move.x,m.move.y,m.move.z)) return false;
+			if(!moveMakesPattern(m.move.x,m.move.y,m.move.z)) return false;
+			for(PylosPosition p : prm.removals) {
+				if(isLocked(p.x,p.y,p.z) || board[p.z][p.x][p.y] != p.colour) return false;
+			}
+		}
+		
+		else if(m instanceof PylosRaiseMove) {
+			PylosRaiseMove prm = (PylosRaiseMove) m;
+			PylosPosition p = prm.raiseFrom;
+			if(isLocked(p.x,p.y,p.z) || board[p.z][p.x][p.y] != p.colour) return false;
+			if(!isEmpty(m.move.x,m.move.y,m.move.z)) return false;
+			if(moveMakesPattern(m.move.x,m.move.y,m.move.z)) return false;
+		}
+		else {
+			if(!isEmpty(m.move.x,m.move.y,m.move.z)) return false;
+			if(moveMakesPattern(m.move.x,m.move.y,m.move.z)) return false;
+		}
+		return true;
+	}
+	
 	// assumes that the destination for the piece is playable, and that the piece belongs to the current player
 	private void update(PylosMove m, boolean changeColour) {
 		
@@ -384,16 +434,19 @@ public class PylosEnvironment {
 			//in this case, we cannot remove "from" since it no longer
 			//has a sphere there (it has been raised)
 			if(notAllowed != null && u.equals(notAllowed)) continue;
-			
+			PylosReturnMove prm = new PylosReturnMove(to,from,u);
 			//remove that position
-			allMoves.add(new PylosReturnMove(to,from,u));
+			if(verifyMove(prm))
+				allMoves.add(prm);
 			//then remove another unlocked position
 			for(int j = i+1; j < tmpUnlockedPositions.size(); j++) {
 				PylosPosition u2 = tmpUnlockedPositions.get(j);
 				//like above, we cannot remove "from" since it no longer
 				//has a sphere there (it has been raised)
-				if(u2.equals(from)) continue;
-				allMoves.add(new PylosReturnMove(to,from,u,u2));
+				if(u2.equals(notAllowed)) continue;
+				PylosReturnMove m2 = new PylosReturnMove(to,from,u,u2);
+				if(verifyMove(m2))
+					allMoves.add(m2);
 			}
 			//finally try all the positions that were under you, and if they were
 			//unlocked then add them as a second remove
@@ -410,8 +463,10 @@ public class PylosEnvironment {
 						throw new PylosGameStateException("getMoves",cr,cc,cl);
 					}
 					PylosPosition u2 = new PylosPosition(cr,cc,cl,currentPlayer);
-					if(!isLocked(cr,cc,cl) && board[cl][cr][cc] == currentPlayer)
-						allMoves.add(new PylosReturnMove(to,from,u,u2));
+					if(!isLocked(cr,cc,cl) && board[cl][cr][cc] == currentPlayer) {
+						PylosReturnMove m2k = new PylosReturnMove(to,from,u,u2);
+						allMoves.add(m2k);
+					}
 				}
 			}
 		}
@@ -439,7 +494,10 @@ public class PylosEnvironment {
 			}
 			//else just add yourself to moves
 			else {
-				allMoves.add(new PylosMove(p));
+				PylosMove m = new PylosMove(p);
+//				if(verifyMove(m)) {
+					allMoves.add(m);
+//				}
 			}
 		}
 		
@@ -466,7 +524,10 @@ public class PylosEnvironment {
 				}
 				//else just add yourself to moves
 				else {
-					allMoves.add(new PylosRaiseMove(to,from));
+					PylosRaiseMove m = new PylosRaiseMove(to,from);
+//					if(verifyMove(m)) {
+						allMoves.add(m);
+//					}
 				}
 			}
 		}

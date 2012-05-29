@@ -3,6 +3,7 @@ package edu.ai;
 public class MoveTranslator {
 
 	private PylosPosition makeValidPosition(String s, int colour) throws PylosInterfaceException {
+		if(s.length() != 2) throw new PylosInterfaceException(s);
 		int x, y, z;
 		z = y = x = -1;
 		switch(s.charAt(0)) {
