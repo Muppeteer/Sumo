@@ -14,6 +14,7 @@ public class PylosReturnMove extends PylosRaiseMove {
 			throw new IllegalArgumentException("Attempted to remove more than two spheres");
 		}
 		for(int i = 0; i < removals.length; i++) {
+			if(removals[i] == null) continue;
 			this.removals.add(removals[i]);
 		}
 	}
