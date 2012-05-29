@@ -24,15 +24,7 @@ public class PylosHumanPlayer extends PylosPlayer {
 				List<PylosMove> l = e.getMoves();
 				boolean found = false;
 				for(PylosMove m : l) {
-					if(m instanceof PylosReturnMove && p instanceof PylosReturnMove) {
-						found = ((PylosReturnMove)p).equals(m);
-					}
-					else if(m instanceof PylosRaiseMove && p instanceof PylosRaiseMove) {
-						found = ((PylosRaiseMove)p).equals(m);
-					}
-					else {
-						found = p.equals(m);
-					}
+					found = p.equals(m);
 					if(found) break;
 				}
 				if(!found) {

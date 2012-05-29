@@ -23,7 +23,8 @@ public class PylosReturnMove extends PylosRaiseMove {
 			PylosReturnMove prm = (PylosReturnMove) o;
 			if(this.raiseFrom == null && prm.raiseFrom != null) return false;
 			if(this.raiseFrom != null && prm.raiseFrom == null) return false;
-			if(!raiseFrom.equals(prm.raiseFrom)) return false;
+			if((this.raiseFrom != null && prm.raiseFrom != null)
+					&& !raiseFrom.equals(prm.raiseFrom)) return false;
 			int nSame = 0;
 			for(PylosPosition p : removals) {
 				for(PylosPosition p2 : prm.removals) {
