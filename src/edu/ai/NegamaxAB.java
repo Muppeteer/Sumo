@@ -1,5 +1,55 @@
 package edu.ai;
 
-public class NegamaxAB {
+import java.util.*;
 
+
+public class NegamaxAB extends Negamax {
+
+  public NegamaxAB(int c, IUtility u, int depthLimit) {
+		super(c, u, depthLimit);
+	}
+
+	private double moveValue(PylosEnvironment e, double alpha, double beta) {	
+		if ( e.isTerminal() || depth == depthLimit )
+			return u.getUtility(e, me) * (e.currentPlayer == me ? 1 : -1);
+		// If search ended on MY turn, OPPONENT had last move, and their utility is -(MY utility)
+		// But that will be taken care of by the negative call to the function, so invert
+		double current = 0;
+		List<PylosMove> movelist = e.getMoves();
+		for (PylosMove x : movelist) {
+			doMove(x);
+			// Check utility of current move
+			current = -moveValue(this.e, -beta, -alpha);	// Order swapped because
+			if (current >= beta) {
+				undoMove(x);
+				return beta;
+			} else if (current > alpha) {
+				alpha = current;
+			}
+			undoMove(x);
+		}
+		return alpha;
+	}
+	
+	public PylosMove getMove() {
+		double alpha = -1001;
+		double beta = 1001;
+		double current = 0;
+		PylosMove bestMove = null;
+		List<PylosMove> movelist = e.getMoves();
+		for (PylosMove x : movelist) {
+			doMove(x);
+			// Check utility of current move
+			current = moveValue(this.e, alpha, beta);
+			if (alpha < current) {
+				alpha = current;
+				bestMove = x;
+			}
+			undoMove(x);
+			if (alpha >= beta) break;	// Beta prune
+		}
+		if(bestMove == null) throw new PylosUtilityException(alpha);
+		return bestMove;
+	}
+					
 }
